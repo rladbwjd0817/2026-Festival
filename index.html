@@ -3,110 +3,146 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
-<title>뜰안애 Festival 좌석 예매</title>
+<title>제5회 뜰안애 Festival 좌석 예매</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700;900&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#f6f4ef; --card:#ffffff; --ink:#2b2b2b; --muted:#8a8a8a; --line:#e7e3da;
-    --avail:#eef6f0; --avail-br:#c3e1cb; --avail-ink:#2f7a43;
-    --sel:#ff7a7a; --sel-br:#e85d5d;
-    --taken:#d6d2ca; --taken-ink:#a7a29a;
-    --wheel:#e7f0ff; --wheel-br:#b4ccf7; --wheel-ink:#3b6fd4;
-    --stage:#33302b; --accent:#c9733b;
+    --cream:#fbf4e2; --cream2:#fff9ee; --ink:#49351f; --muted:#9c8a6c; --line:#e6d6b0;
+    --gold:#c6a052; --gold-d:#a67f35; --gold-l:#ecd38f;
+    --velvet:#9a2f2c; --velvet-d:#6e1f1f;
+    --avail:#fff8e8; --avail-br:#dcc488; --avail-ink:#7c5a2a;
+    --sel:#a3312f; --sel-br:#7e2220;
+    --taken:#d8ceb9; --taken-ink:#aa9b7c;
+    --wheel:#e9f0fb; --wheel-br:#b9cdec; --wheel-ink:#3b6fd4;
+    --stage:#2a1a13;
   }
-  *{box-sizing:border-box}
-  html,body{margin:0;padding:0}
+  *{box-sizing:border-box} html,body{margin:0;padding:0}
   body{font-family:-apple-system,BlinkMacSystemFont,"Malgun Gothic","맑은 고딕",'Apple SD Gothic Neo',sans-serif;
-       background:var(--bg); color:var(--ink); -webkit-text-size-adjust:100%;}
-  header{text-align:center; padding:16px 16px 12px; background:linear-gradient(180deg,#fff,#fbf9f4); border-bottom:1px solid var(--line); position:relative;}
-  header .title{font-size:20px; font-weight:800; letter-spacing:.5px}
-  header .title b{color:var(--accent)}
-  header .meta{font-size:12.5px; color:var(--muted); margin-top:4px}
-  .mybtn{position:absolute; right:12px; top:14px; font-size:12px; border:1px solid var(--line); background:#fff; border-radius:999px; padding:6px 11px; color:var(--ink); font-weight:600}
+       color:var(--ink); -webkit-text-size-adjust:100%;
+       background:#241510;
+       background-image:radial-gradient(85% 50% at 50% -4%, rgba(255,214,140,.22), rgba(255,214,140,0) 60%),
+                        linear-gradient(180deg,#3c251c 0%,#241510 58%,#1b100c 100%);
+       background-attachment:fixed; min-height:100vh;}
+  .serif{font-family:"Noto Serif KR",serif;}
 
-  .steps{position:sticky; top:0; z-index:20; background:rgba(246,244,239,.95); backdrop-filter:blur(6px); border-bottom:1px solid var(--line); padding:9px 12px}
+  /* 커튼 밸런스 */
+  .valance{height:26px; background:linear-gradient(180deg,#a8322f,#7a2222); position:relative; z-index:6;}
+  .valance::before{content:""; position:absolute; left:0; right:0; top:24px; height:2px; z-index:7;
+    background:linear-gradient(90deg,#a67f35,#ecd38f,#a67f35);}
+  .valance::after{content:""; position:absolute; left:0; right:0; top:26px; height:14px;
+    background:radial-gradient(circle at 11px -3px,#7a2222 11px,transparent 12px) repeat-x; background-size:22px 14px;}
+
+  header{text-align:center; padding:22px 16px 14px; position:relative;}
+  header .title{font-family:"Noto Serif KR",serif; font-weight:900; font-size:27px; line-height:1.12; letter-spacing:1px;
+    background:linear-gradient(180deg,#f8e7ac 0%,#dcb75a 50%,#a9801f 100%); -webkit-background-clip:text; background-clip:text; color:transparent;
+    text-shadow:0 2px 12px rgba(0,0,0,.35);}
+  header .title .ord{display:block; font-size:14px; letter-spacing:7px; font-weight:700; margin-bottom:3px;}
+  header .meta{display:inline-flex; gap:12px; flex-wrap:wrap; justify-content:center; align-items:center; margin-top:13px;
+    background:var(--cream); border:1.5px solid var(--gold); border-radius:999px; padding:8px 16px;
+    font-size:12.5px; color:var(--ink); font-weight:600; box-shadow:0 5px 16px rgba(0,0,0,.3);}
+  header .meta b{color:var(--velvet)}
+  .mybtn{position:absolute; right:12px; top:18px; font-size:12px; border:1px solid var(--gold); background:rgba(255,255,255,.08);
+    border-radius:999px; padding:6px 12px; color:var(--gold-l); font-weight:700;}
+
+  .steps{position:sticky; top:0; z-index:20; background:var(--cream); border-top:1px solid var(--gold); border-bottom:1px solid var(--gold);
+    box-shadow:0 3px 12px rgba(0,0,0,.25); padding:10px 12px}
   .people{display:flex; align-items:center; gap:8px; justify-content:center; flex-wrap:wrap}
-  .people .lab{font-size:12.5px; font-weight:700}
-  .pbtns{display:flex; gap:6px}
-  .pbtns button{width:40px; height:36px; border-radius:10px; border:1px solid var(--line); background:#fff; font-size:15px; font-weight:800; color:var(--ink)}
-  .pbtns button.on{background:var(--accent); border-color:var(--accent); color:#fff}
+  .people .lab{font-size:12.5px; font-weight:800; color:var(--velvet)}
+  .pbtns{display:flex; gap:5px; flex-wrap:wrap; justify-content:center}
+  .pbtns button{width:38px; height:36px; border-radius:9px; border:1px solid var(--gold); background:#fff8ea; font-size:15px; font-weight:800; color:var(--ink)}
+  .pbtns button.on{background:linear-gradient(180deg,var(--velvet),var(--velvet-d)); border-color:var(--velvet-d); color:#fff}
   .hint{text-align:center; font-size:11.5px; color:var(--muted); margin-top:6px}
-  .legend{display:flex; gap:10px; align-items:center; font-size:11px; color:var(--muted); flex-wrap:wrap; justify-content:center; margin-top:7px}
+  .hint b{color:var(--velvet)}
+  .legend{display:flex; gap:10px; align-items:center; font-size:11px; color:#7a6b4e; flex-wrap:wrap; justify-content:center; margin-top:7px}
   .legend i{display:inline-block; width:11px; height:11px; border-radius:3px; vertical-align:-1px; margin-right:3px; border:1px solid}
   .lg-avail i{background:var(--avail); border-color:var(--avail-br)}
   .lg-sel i{background:var(--sel); border-color:var(--sel-br)}
-  .lg-taken i{background:var(--taken); border-color:#cfcabf}
+  .lg-taken i{background:var(--taken); border-color:#cfc3a6}
   .lg-wheel i{background:var(--wheel); border-color:var(--wheel-br)}
 
-  .zoombar{display:flex; justify-content:center; gap:6px; padding:8px}
-  .zoombar button{width:34px; height:34px; border-radius:10px; border:1px solid var(--line); background:#fff; font-size:17px; font-weight:700; color:var(--ink); line-height:1;}
+  .zoombar{display:flex; justify-content:center; gap:6px; padding:10px 8px 2px}
+  .zoombar button{width:34px; height:34px; border-radius:10px; border:1px solid var(--gold); background:var(--cream); font-size:17px; font-weight:700; color:var(--ink); line-height:1}
 
-  .scroller{overflow:auto; -webkit-overflow-scrolling:touch; padding:4px 10px 180px}
-  .hall{width:max-content; margin:0 auto; transform-origin:top center; transition:transform .12s ease}
-  .stage{width:100%; min-width:420px; margin:0 auto 8px; background:var(--stage); color:#fff; text-align:center;
-         border-radius:8px; padding:9px; font-size:13px; letter-spacing:8px; font-weight:700; box-shadow:0 6px 14px rgba(0,0,0,.12);}
+  .scroller{overflow:auto; -webkit-overflow-scrolling:touch; padding:10px 10px 180px}
+  .hall{width:max-content; margin:0 auto; transform-origin:top center; transition:transform .12s ease;
+    background:var(--cream); border:1.5px solid var(--gold); border-radius:16px; padding:16px 14px 18px;
+    box-shadow:0 12px 34px rgba(0,0,0,.35)}
+  .stage{width:100%; min-width:400px; margin:0 auto 8px; background:linear-gradient(180deg,#36221a,#241510); color:var(--gold-l); text-align:center;
+    border:1px solid var(--gold-d); border-radius:8px; padding:9px; font-size:13px; letter-spacing:8px; font-weight:800;
+    box-shadow:0 5px 14px rgba(0,0,0,.4), inset 0 0 0 1px rgba(255,255,255,.05)}
   .stage-hint{text-align:center; font-size:11px; color:var(--muted); margin:0 0 14px}
+
   .block{display:flex; gap:22px; align-items:flex-start; justify-content:center}
   .block.back{margin-top:30px}
   .section{display:flex; flex-direction:column; align-items:center}
   .sec-head{display:flex; align-items:center; gap:7px; margin-bottom:8px}
-  .sec-badge{width:28px; height:28px; border-radius:50%; background:var(--ink); color:#fff; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:800;}
+  .sec-badge{width:28px; height:28px; border-radius:50%; background:linear-gradient(180deg,var(--velvet),var(--velvet-d)); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:800; border:1px solid var(--gold-d); box-shadow:0 2px 6px rgba(0,0,0,.25)}
   .sec-count{font-size:11px; color:var(--muted)}
   .rows{display:flex; flex-direction:column; gap:4px}
   .rows.end{align-items:flex-end} .rows.center{align-items:center} .rows.start{align-items:flex-start}
   .seatrow{display:flex; gap:4px}
   .seat{width:22px; height:22px; border-radius:5px; border:1px solid var(--avail-br); background:var(--avail); color:var(--avail-ink);
-        font-size:9px; font-weight:600; padding:0; cursor:pointer; line-height:1; display:flex; align-items:center; justify-content:center;}
+        font-size:9px; font-weight:700; padding:0; cursor:pointer; line-height:1; display:flex; align-items:center; justify-content:center}
   .seat.wheel{background:var(--wheel); border-color:var(--wheel-br); color:var(--wheel-ink); font-size:11px}
-  .seat.sel{background:var(--sel); border-color:var(--sel-br); color:#fff}
-  .seat.taken{background:var(--taken); border-color:#cfcabf; color:var(--taken-ink); cursor:not-allowed; text-decoration:line-through}
-  .seat.gap{background:repeating-linear-gradient(45deg,#f3ece2,#f3ece2 4px,#ece3d6 4px,#ece3d6 8px); border:1px dashed #d9cbb6; color:#b09a74; cursor:default; font-size:8px}
+  .seat.sel{background:linear-gradient(180deg,var(--sel),var(--sel-br)); border-color:var(--sel-br); color:#fff}
+  .seat.taken{background:var(--taken); border-color:#cfc3a6; color:var(--taken-ink); cursor:not-allowed; text-decoration:line-through}
+  .seat.gap{background:repeating-linear-gradient(45deg,#efe6d1,#efe6d1 4px,#e6d9bd 4px,#e6d9bd 8px); border:1px dashed #cdb98c; color:#a98f5e; cursor:default; font-size:8px}
 
-  .cart{position:fixed; left:0; right:0; bottom:0; z-index:30; background:#fff; border-top:1px solid var(--line);
-        box-shadow:0 -6px 20px rgba(0,0,0,.06); padding:12px 16px calc(12px + env(safe-area-inset-bottom));}
-  .cart .cnt{font-size:13px; color:var(--muted)} .cart .cnt b{color:var(--ink); font-size:15px}
+  .foot{text-align:center; color:var(--gold-l); font-weight:700; font-size:13px; margin:22px 0 4px; opacity:.9; font-family:"Noto Serif KR",serif}
+
+  .cart{position:fixed; left:0; right:0; bottom:0; z-index:30; background:var(--cream2); border-top:2px solid var(--gold);
+        box-shadow:0 -6px 22px rgba(0,0,0,.25); padding:12px 16px calc(12px + env(safe-area-inset-bottom))}
+  .cart .cnt{font-size:13px; color:var(--muted)} .cart .cnt b{color:var(--velvet); font-size:15px}
   .chips{display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; max-height:52px; overflow:auto}
-  .chip{background:#fff0f0; border:1px solid #f3c7c7; color:#c0392b; border-radius:999px; font-size:12px; padding:4px 9px}
-  .cart .cta{margin-top:10px; width:100%; border:0; border-radius:12px; padding:13px; background:var(--accent); color:#fff; font-size:15px; font-weight:800;}
-  .cart .cta:disabled{background:#d9d4cc; color:#fff}
+  .chip{background:#f7e9e3; border:1px solid #e0b9ac; color:var(--velvet); border-radius:999px; font-size:12px; padding:4px 9px; font-weight:600}
+  .cart .cta{margin-top:10px; width:100%; border:1px solid var(--gold-d); border-radius:12px; padding:13px;
+    background:linear-gradient(180deg,var(--velvet),var(--velvet-d)); color:#fff; font-size:15px; font-weight:800; letter-spacing:.5px}
+  .cart .cta:disabled{background:#d9cfb9; border-color:#cabf9f; color:#fff}
 
-  .modal-bg{position:fixed; inset:0; z-index:50; background:rgba(0,0,0,.45); display:none; align-items:center; justify-content:center; padding:18px}
+  .modal-bg{position:fixed; inset:0; z-index:50; background:rgba(30,16,10,.55); display:none; align-items:center; justify-content:center; padding:18px}
   .modal-bg.on{display:flex}
-  .modal{background:#fff; border-radius:16px; width:100%; max-width:380px; padding:20px; box-shadow:0 20px 50px rgba(0,0,0,.25); max-height:88vh; overflow:auto}
-  .modal h3{margin:0 0 4px; font-size:17px}
+  .modal{background:var(--cream2); border:1.5px solid var(--gold); border-radius:16px; width:100%; max-width:380px; padding:20px; box-shadow:0 20px 50px rgba(0,0,0,.4); max-height:88vh; overflow:auto}
+  .modal h3{margin:0 0 4px; font-size:17px; color:var(--velvet); font-family:"Noto Serif KR",serif}
   .modal .sub{font-size:12.5px; color:var(--muted); margin-bottom:14px}
   .modal label{display:block; font-size:12.5px; font-weight:700; margin:12px 0 5px}
   .modal input, .modal select{width:100%; padding:11px; border:1px solid var(--line); border-radius:10px; font-size:15px; background:#fff}
   .modal .mchips{display:flex; gap:6px; flex-wrap:wrap; margin-top:4px}
-  .modal .mchip{background:#f3efe7; border:1px solid var(--line); border-radius:999px; font-size:12px; padding:4px 9px}
+  .modal .mchip{background:#f3ead4; border:1px solid var(--line); border-radius:999px; font-size:12px; padding:4px 9px}
   .modal .btns{display:flex; gap:8px; margin-top:18px}
   .modal .btns button{flex:1; padding:12px; border-radius:11px; font-size:15px; font-weight:800; border:0}
-  .modal .cancel{background:#eee7db; color:#6b6558}
-  .modal .ok{background:var(--accent); color:#fff}
-  .modal .ok:disabled{background:#d9d4cc}
+  .modal .cancel{background:#eadfc6; color:#6b5c3c}
+  .modal .ok{background:linear-gradient(180deg,var(--velvet),var(--velvet-d)); color:#fff; border:1px solid var(--gold-d)}
+  .modal .ok:disabled{background:#d9cfb9}
   .okbox{text-align:center} .okbox .big{font-size:40px; margin:6px 0}
-  .resno{font-family:ui-monospace,Menlo,monospace; background:#f3efe7; border:1px dashed #cfc7b6; border-radius:8px; padding:8px; font-size:13px; margin:8px 0; word-break:break-all}
-  .myitem{border:1px solid var(--line); border-radius:12px; padding:11px; margin-top:10px}
+  .resno{font-family:ui-monospace,Menlo,monospace; background:#f3ead4; border:1px dashed var(--gold); border-radius:8px; padding:8px; font-size:13px; margin:8px 0; word-break:break-all}
+  .myitem{border:1px solid var(--line); border-radius:12px; padding:11px; margin-top:10px; background:#fff}
   .myitem .mt{font-weight:700; font-size:14px} .myitem .ms{font-size:12px; color:var(--muted); margin-top:3px}
-  .myitem .del{margin-top:8px; width:100%; padding:8px; border-radius:9px; border:1px solid #f0c9c9; background:#fff3f3; color:#c0392b; font-weight:700; font-size:13px}
-  .toast{position:fixed; left:50%; bottom:92px; transform:translateX(-50%); background:#2b2b2b; color:#fff; padding:10px 16px; border-radius:999px; font-size:13px; z-index:60; opacity:0; transition:opacity .2s; pointer-events:none; max-width:90%; text-align:center}
+  .myitem .del{margin-top:8px; width:100%; padding:8px; border-radius:9px; border:1px solid #e0b9ac; background:#f7e9e3; color:var(--velvet); font-weight:700; font-size:13px}
+  .toast{position:fixed; left:50%; bottom:92px; transform:translateX(-50%); background:#2a1a13; color:#fff; padding:10px 16px; border-radius:999px; font-size:13px; z-index:60; opacity:0; transition:opacity .2s; pointer-events:none; max-width:90%; text-align:center; border:1px solid var(--gold-d)}
   .toast.on{opacity:1}
 
   /* 오픈 전 잠금 화면 */
-  .gate{position:fixed; inset:0; z-index:80; background:linear-gradient(160deg,#2b2824,#4a4038); color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:28px}
+  .gate{position:fixed; inset:0; z-index:80; color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:28px;
+    background:radial-gradient(80% 50% at 50% 2%, rgba(255,214,140,.2), rgba(255,214,140,0) 60%), linear-gradient(180deg,#3c251c,#1b100c)}
   .gate.hidden{display:none}
-  .gate .g-badge{font-size:40px}
-  .gate h1{font-size:24px; margin:10px 0 4px} .gate h1 b{color:#f0b483}
-  .gate .g-meta{font-size:13px; opacity:.8; margin-bottom:22px}
-  .gate .g-label{font-size:13px; opacity:.85}
-  .gate .count{font-size:34px; font-weight:800; letter-spacing:1px; margin:8px 0; font-variant-numeric:tabular-nums}
-  .gate .g-open{font-size:14px; opacity:.9; margin-top:4px}
-  .gate .g-note{font-size:12px; opacity:.65; margin-top:26px; max-width:300px; line-height:1.6}
+  .gate .g-badge{font-size:42px}
+  .gate h1{font-family:"Noto Serif KR",serif; font-size:25px; margin:12px 0 4px; font-weight:900;
+    background:linear-gradient(180deg,#f8e7ac,#dcb75a 55%,#a9801f); -webkit-background-clip:text; background-clip:text; color:transparent}
+  .gate .g-meta{font-size:13px; color:#e7d6b8; opacity:.85; margin-bottom:22px}
+  .gate .g-label{font-size:13px; color:#e7d6b8; opacity:.9}
+  .gate .count{font-size:34px; font-weight:800; letter-spacing:1px; margin:8px 0; font-variant-numeric:tabular-nums; color:var(--gold-l)}
+  .gate .g-open{font-size:14px; color:#f3e6c6; opacity:.95; margin-top:4px}
+  .gate .g-note{font-size:12px; color:#cbb892; opacity:.7; margin-top:26px; max-width:300px; line-height:1.6}
 </style>
 </head>
 <body>
+<div class="valance"></div>
 <header>
-  <div class="title">뜰안애 <b>Festival</b></div>
-  <div class="meta">2026. 12. 11. (금) · 울산 북구문화예술회관</div>
+  <div class="title serif"><span class="ord">제 5 회</span>뜰안애 FESTIVAL</div>
+  <div class="meta"><span>📅 <b>2026.12.11</b> (금)</span><span>🕕 오후 6시</span><span>📍 북구문화예술회관</span></div>
   <button class="mybtn" id="myBtn">내 예약</button>
 </header>
 
@@ -137,6 +173,7 @@
     <div class="block front" id="blockFront"></div>
     <div class="block back" id="blockBack"></div>
   </div>
+  <div class="foot">🎭 국공립 뜰안애어린이집</div>
 </div>
 
 <div class="cart">
@@ -186,9 +223,9 @@
 
 <!-- 오픈 전 잠금 -->
 <div class="gate" id="gate">
-  <div class="g-badge">🎫</div>
-  <h1>뜰안애 <b>Festival</b> 좌석 예매</h1>
-  <div class="g-meta">2026. 12. 11. (금) · 울산 북구문화예술회관</div>
+  <div class="g-badge">🎭</div>
+  <h1 class="serif">제5회 뜰안애 FESTIVAL</h1>
+  <div class="g-meta">2026. 12. 11. (금) 오후 6시 · 북구문화예술회관</div>
   <div id="gateBody">
     <div class="g-label">잠시만 기다려주세요…</div>
   </div>
