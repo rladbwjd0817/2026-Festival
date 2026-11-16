@@ -22,7 +22,7 @@
   header .t{font-family:"Noto Serif KR",serif; font-weight:900; font-size:21px;
     background:linear-gradient(180deg,#f8e7ac,#dcb75a 55%,#a9801f); -webkit-background-clip:text; background-clip:text; color:transparent}
   header .s{font-size:12px; color:#e0cfa8; opacity:.8; margin-top:3px}
-  .wrap{max-width:880px; margin:0 auto; padding:16px}
+  .wrap{max-width:920px; margin:0 auto; padding:16px}
 
   .login{max-width:340px; margin:40px auto; background:var(--cream2); border:1.5px solid var(--gold); border-radius:16px; padding:24px; text-align:center; box-shadow:0 14px 36px rgba(0,0,0,.35)}
   .login h2{margin:0 0 6px; font-size:17px; color:var(--velvet); font-family:"Noto Serif KR",serif} .login p{font-size:12.5px; color:var(--muted); margin:0 0 16px}
@@ -30,13 +30,27 @@
   .login button{margin-top:12px; width:100%; padding:12px; border:1px solid var(--gold-d); border-radius:11px; background:linear-gradient(180deg,var(--velvet),var(--velvet-d)); color:#fff; font-size:15px; font-weight:800}
   .err{color:#c0392b; font-size:12.5px; margin-top:10px; min-height:16px}
 
-  .bar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; margin-bottom:14px}
+  .section-title{color:var(--gold-l); font-size:13px; font-weight:800; margin:18px 2px 8px; font-family:"Noto Serif KR",serif}
   .stats{display:flex; gap:8px; flex-wrap:wrap}
-  .stat{background:var(--cream); border:1px solid var(--gold); border-radius:12px; padding:8px 14px; font-size:13px}
-  .stat b{font-size:18px; color:var(--velvet); display:block}
+  .stat{flex:1; min-width:100px; background:var(--cream); border:1px solid var(--gold); border-radius:12px; padding:10px 14px; font-size:13px; text-align:center}
+  .stat b{font-size:22px; color:var(--velvet); display:block; font-family:"Noto Serif KR",serif}
+  .stat .u{font-size:11px; color:var(--muted)}
+
+  .classstats{display:flex; gap:8px; flex-wrap:wrap}
+  .cscard{background:var(--cream); border:1px solid var(--gold); border-radius:12px; padding:9px 12px; font-size:12px; cursor:pointer; text-align:center; min-width:92px}
+  .cscard .cn{font-weight:700}
+  .cscard b{display:block; font-size:16px; color:var(--velvet); margin-top:2px}
+  .cscard .sub{font-size:10.5px; color:var(--muted)}
+  .cscard.on{background:linear-gradient(180deg,var(--velvet),var(--velvet-d)); border-color:var(--velvet-d)}
+  .cscard.on .cn, .cscard.on b, .cscard.on .sub{color:#fff}
+
+  .bar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; margin:14px 0 10px}
+  .ctrls{display:flex; gap:6px; flex-wrap:wrap; align-items:center}
+  .ctrls select{padding:9px 11px; border:1px solid var(--gold); border-radius:9px; background:var(--cream); font-size:13px; font-weight:600; color:var(--ink)}
   .tools{display:flex; gap:6px; flex-wrap:wrap}
-  .tools button{border:1px solid var(--gold); background:var(--cream); border-radius:9px; padding:8px 12px; font-size:13px; font-weight:600; color:var(--ink)}
-  .tools button.on{background:linear-gradient(180deg,var(--velvet),var(--velvet-d)); color:#fff; border-color:var(--velvet-d)}
+  .tools button{border:1px solid var(--gold); background:var(--cream); border-radius:9px; padding:9px 12px; font-size:13px; font-weight:700; color:var(--ink)}
+  .tools button.excel{background:linear-gradient(180deg,#2f7a43,#246034); color:#fff; border-color:#1e5029}
+
   .tbl{background:var(--cream2); border:1.5px solid var(--gold); border-radius:14px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,.3)}
   table{width:100%; border-collapse:collapse; font-size:13.5px}
   th,td{padding:11px 12px; text-align:left; border-bottom:1px solid #efe4cb}
@@ -46,7 +60,7 @@
   .delbtn{border:1px solid #e0b9ac; background:#f7e9e3; color:var(--velvet); border-radius:8px; padding:5px 10px; font-size:12px; font-weight:700}
   .empty{text-align:center; color:var(--muted); padding:40px 16px; font-size:14px}
   .cls-head{background:#f0e4c6; font-weight:800; font-size:13px; color:var(--ink)}
-  @media print{ body{background:#fff} .valance,.bar,.tools,header .s,.delbtn{display:none} .tbl{border:0; box-shadow:none} header .t{color:#000 !important; -webkit-text-fill-color:#000} }
+  @media print{ body{background:#fff} .valance,.bar,.tools,.ctrls,header .s,.delbtn{display:none} .tbl{border:0; box-shadow:none} header .t{color:#000 !important; -webkit-text-fill-color:#000} .cscard{border-color:#999} }
 </style>
 </head>
 <body>
@@ -66,16 +80,29 @@
   </div>
 
   <div id="dash" style="display:none">
+    <div class="section-title">📊 전체 현황</div>
+    <div class="stats">
+      <div class="stat"><b id="stFam">0</b><span class="u">예약 가정</span></div>
+      <div class="stat"><b id="stSeat">0</b><span class="u">예약 좌석</span></div>
+      <div class="stat"><b id="stRate">0%</b><span class="u" id="stRateU">예약률 (/450석)</span></div>
+    </div>
+
+    <div class="section-title">🏷️ 반별 현황 <span style="font-weight:400;opacity:.7">(클릭하면 해당 반만 보기)</span></div>
+    <div class="classstats" id="classStats"></div>
+
     <div class="bar">
-      <div class="stats">
-        <div class="stat">예약 가정<b id="stFam">0</b></div>
-        <div class="stat">예약 좌석<b id="stSeat">0</b></div>
+      <div class="ctrls">
+        <select id="classFilter"></select>
+        <select id="sortMode">
+          <option value="class">정렬: 반별</option>
+          <option value="name">정렬: 이름 가나다순</option>
+          <option value="time">정렬: 예약 시간순</option>
+        </select>
       </div>
       <div class="tools">
-        <button id="sortClass" class="on">반별</button>
-        <button id="sortTime">시간순</button>
-        <button id="refresh">새로고침</button>
-        <button id="print">인쇄</button>
+        <button id="refresh">🔄 새로고침</button>
+        <button id="excel" class="excel">⬇️ 엑셀 다운로드</button>
+        <button id="print">🖨️ 인쇄</button>
       </div>
     </div>
     <div class="tbl" id="tblWrap"></div>
@@ -88,17 +115,14 @@ const SUPABASE_URL = "https://whsptyyzqszsqchtsejy.supabase.co";
 const SUPABASE_KEY = "sb_publishable_cI5aQY5Y_mG6DcIbAKoIkQ_NUbOpR7h";
 const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const PW_KEY = "ddeuran_admin_pw";
-const CLASS_ORDER = ["봄맞이반","사랑초반","설유화반","곰딸기반","해란초반","갯버들반","갯완두반"];
+const CLASSES = ["봄맞이반","사랑초반","설유화반","곰딸기반","해란초반","갯버들반","갯완두반"];
+const TOTAL_SEATS = 450; // 일반 438 + 휠체어 12
 
-let rows=[], pw="", sortMode="class";
+let rows=[], pw="", sortMode="class", classFilter="";
 
-function fmtSeat(id){
-  const m=id.match(/^(.+)-(W?)(\d+)$/);
-  if(!m) return id;
-  return m[1]+' '+(m[2]?'휠체어':'')+m[3];
-}
-function fmtTime(s){ const d=new Date(s); const p=n=>String(n).padStart(2,'0');
-  return `${d.getMonth()+1}/${d.getDate()} ${p(d.getHours())}:${p(d.getMinutes())}`; }
+function fmtSeat(id){ const m=id.match(/^(.+)-(W?)(\d+)$/); return m ? m[1]+' '+(m[2]?'휠체어':'')+m[3] : id; }
+function fmtTime(s){ const d=new Date(s); const p=n=>String(n).padStart(2,'0'); return `${d.getMonth()+1}/${d.getDate()} ${p(d.getHours())}:${p(d.getMinutes())}`; }
+function seatsOf(r){ return r.seats||[]; }
 
 async function login(){
   const err=document.getElementById('err'); err.textContent='';
@@ -113,67 +137,110 @@ async function login(){
     rows=data.rows||[];
     document.getElementById('login').style.display='none';
     document.getElementById('dash').style.display='block';
-    render();
+    buildFilter(); render();
   }catch(e){ console.error(e); err.textContent='오류가 발생했어요. 다시 시도해주세요.'; }
   finally{ btn.disabled=false; btn.textContent='확인'; }
 }
 async function reload(){
-  try{
-    const { data, error } = await supa.rpc('admin_bookings',{ p_pw: pw });
-    if(error) throw error;
-    if(data.ok){ rows=data.rows||[]; render(); }
-  }catch(e){ console.error(e); }
+  try{ const { data, error } = await supa.rpc('admin_bookings',{ p_pw: pw });
+    if(error) throw error; if(data.ok){ rows=data.rows||[]; render(); } }catch(e){ console.error(e); }
 }
 async function cancelOne(group, name){
   if(!confirm(name+' 예약을 취소할까요? (좌석이 다시 풀려요)')) return;
-  try{
-    const { data, error } = await supa.rpc('cancel_booking',{ p_group: group });
-    if(error) throw error;
-    rows=rows.filter(r=>r.group_id!==group); render();
+  try{ const { data, error } = await supa.rpc('cancel_booking',{ p_group: group });
+    if(error) throw error; rows=rows.filter(r=>r.group_id!==group); render();
   }catch(e){ console.error(e); alert('취소에 실패했어요.'); }
 }
 
+function buildFilter(){
+  const sel=document.getElementById('classFilter');
+  sel.innerHTML='<option value="">전체 반</option>'+CLASSES.map(c=>`<option value="${c}">${c}</option>`).join('');
+  sel.value=classFilter;
+}
+
 function render(){
+  // 전체 통계
   const famCount=rows.length;
-  const seatCount=rows.reduce((n,r)=>n+(r.seats?r.seats.length:0),0);
+  const seatCount=rows.reduce((n,r)=>n+seatsOf(r).length,0);
   document.getElementById('stFam').textContent=famCount;
   document.getElementById('stSeat').textContent=seatCount;
+  document.getElementById('stRate').textContent=Math.round(seatCount/TOTAL_SEATS*100)+'%';
+  document.getElementById('stRateU').textContent=`예약률 (${seatCount}/${TOTAL_SEATS}석)`;
 
+  // 반별 통계
+  const byClass={};
+  CLASSES.forEach(c=>byClass[c]={fam:0,seat:0});
+  rows.forEach(r=>{ const c=r.class; if(!byClass[c]) byClass[c]={fam:0,seat:0}; byClass[c].fam++; byClass[c].seat+=seatsOf(r).length; });
+  const csWrap=document.getElementById('classStats'); csWrap.innerHTML='';
+  const allCard=document.createElement('div'); allCard.className='cscard'+(classFilter===''?' on':'');
+  allCard.innerHTML=`<div class="cn">전체</div><b>${famCount}</b><div class="sub">가정 · ${seatCount}석</div>`;
+  allCard.onclick=()=>{ classFilter=''; document.getElementById('classFilter').value=''; render(); };
+  csWrap.appendChild(allCard);
+  Object.keys(byClass).forEach(c=>{
+    const d=document.createElement('div'); d.className='cscard'+(classFilter===c?' on':'');
+    d.innerHTML=`<div class="cn">${c}</div><b>${byClass[c].fam}</b><div class="sub">가정 · ${byClass[c].seat}석</div>`;
+    d.onclick=()=>{ classFilter=c; document.getElementById('classFilter').value=c; render(); };
+    csWrap.appendChild(d);
+  });
+
+  // 목록 (필터 + 정렬)
+  let list=classFilter? rows.filter(r=>r.class===classFilter) : rows.slice();
   const wrap=document.getElementById('tblWrap');
-  if(famCount===0){ wrap.innerHTML='<div class="empty">아직 예약이 없어요.</div>'; return; }
+  if(list.length===0){ wrap.innerHTML='<div class="empty">예약 내역이 없어요.</div>'; return; }
 
-  let html='<table><thead><tr><th>반</th><th>아이 이름</th><th>좌석</th><th>예약시각</th><th></th></tr></thead><tbody>';
   const rowHtml=(r)=>`<tr>
     <td>${r.class||''}</td><td><b>${r.name||''}</b></td>
-    <td class="seats">${(r.seats||[]).map(fmtSeat).join(', ')}</td>
+    <td class="seats">${seatsOf(r).map(fmtSeat).join(', ')}</td>
     <td>${fmtTime(r.at)}</td>
     <td><button class="delbtn" data-g="${r.group_id}" data-n="${(r.name||'').replace(/"/g,'')}">취소</button></td></tr>`;
 
-  if(sortMode==='class'){
-    const groups={};
-    rows.forEach(r=>{ (groups[r.class]=groups[r.class]||[]).push(r); });
-    const order=[...CLASS_ORDER, ...Object.keys(groups).filter(c=>!CLASS_ORDER.includes(c))];
+  let html='<table><thead><tr><th>반</th><th>아이 이름</th><th>좌석</th><th>예약시각</th><th></th></tr></thead><tbody>';
+  if(sortMode==='class' && !classFilter){
+    const order=[...CLASSES, ...Object.keys(byClass).filter(c=>!CLASSES.includes(c))];
     order.forEach(c=>{
-      if(!groups[c]) return;
-      const sub=groups[c].slice().sort((a,b)=>(a.name||'').localeCompare(b.name||'','ko'));
-      const sc=sub.reduce((n,r)=>n+(r.seats?r.seats.length:0),0);
+      const sub=list.filter(r=>r.class===c).sort((a,b)=>(a.name||'').localeCompare(b.name||'','ko'));
+      if(sub.length===0) return;
+      const sc=sub.reduce((n,r)=>n+seatsOf(r).length,0);
       html+=`<tr class="cls-head"><td colspan="5">${c} · ${sub.length}가정 ${sc}석</td></tr>`;
       sub.forEach(r=>html+=rowHtml(r));
     });
-  }else{
-    rows.slice().sort((a,b)=>new Date(a.at)-new Date(b.at)).forEach(r=>html+=rowHtml(r));
+  }else if(sortMode==='time'){
+    list.sort((a,b)=>new Date(a.at)-new Date(b.at)).forEach(r=>html+=rowHtml(r));
+  }else{ // name (또는 특정 반 선택 시 이름순)
+    list.sort((a,b)=>(a.name||'').localeCompare(b.name||'','ko')).forEach(r=>html+=rowHtml(r));
   }
   html+='</tbody></table>';
   wrap.innerHTML=html;
   wrap.querySelectorAll('.delbtn').forEach(b=>b.onclick=()=>cancelOne(b.dataset.g, b.dataset.n));
 }
 
+/* ===== 엑셀(CSV) 다운로드 ===== */
+function toCSV(list){
+  const esc=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  const head=['반','아이 이름','좌석수','좌석','예약시각'];
+  const body=list.map(r=>[r.class, r.name, seatsOf(r).length, seatsOf(r).map(fmtSeat).join(' '), fmtTime(r.at)]);
+  return '﻿'+[head,...body].map(r=>r.map(esc).join(',')).join('\r\n');
+}
+function downloadCSV(){
+  let list=classFilter? rows.filter(r=>r.class===classFilter) : rows.slice();
+  list.sort((a,b)=>(a.class||'').localeCompare(b.class||'','ko')||(a.name||'').localeCompare(b.name||'','ko'));
+  if(list.length===0){ alert('다운로드할 예약이 없어요.'); return; }
+  const label=classFilter||'전체';
+  const csv=toCSV(list);
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download=`뜰안애Festival_예약_${label}.csv`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+}
+
 document.getElementById('loginBtn').onclick=login;
 document.getElementById('pw').addEventListener('keydown',e=>{ if(e.key==='Enter') login(); });
 document.getElementById('refresh').onclick=reload;
 document.getElementById('print').onclick=()=>window.print();
-document.getElementById('sortClass').onclick=()=>{ sortMode='class'; document.getElementById('sortClass').classList.add('on'); document.getElementById('sortTime').classList.remove('on'); render(); };
-document.getElementById('sortTime').onclick=()=>{ sortMode='time'; document.getElementById('sortTime').classList.add('on'); document.getElementById('sortClass').classList.remove('on'); render(); };
+document.getElementById('excel').onclick=downloadCSV;
+document.getElementById('classFilter').onchange=e=>{ classFilter=e.target.value; render(); };
+document.getElementById('sortMode').onchange=e=>{ sortMode=e.target.value; render(); };
 
 (function(){ try{ const saved=sessionStorage.getItem(PW_KEY); if(saved){ document.getElementById('pw').value=saved; login(); } }catch(e){} })();
 </script>
