@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+<title>뜰안애 Festival 좌석 예매</title>
+<style>
+  :root{
+    --bg:#f6f4ef; --card:#ffffff; --ink:#2b2b2b; --muted:#8a8a8a; --line:#e7e3da;
+    --avail:#eef6f0; --avail-br:#c3e1cb; --avail-ink:#2f7a43;
+    --sel:#ff7a7a; --sel-br:#e85d5d;
+    --taken:#d6d2ca; --taken-ink:#a7a29a;
+    --wheel:#e7f0ff; --wheel-br:#b4ccf7; --wheel-ink:#3b6fd4;
+    --stage:#33302b; --accent:#c9733b;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Malgun Gothic","맑은 고딕",'Apple SD Gothic Neo',sans-serif;
+       background:var(--bg); color:var(--ink); -webkit-text-size-adjust:100%;}
+  header{text-align:center; padding:16px 16px 12px; background:linear-gradient(180deg,#fff,#fbf9f4); border-bottom:1px solid var(--line); position:relative;}
+  header .title{font-size:20px; font-weight:800; letter-spacing:.5px}
+  header .title b{color:var(--accent)}
+  header .meta{font-size:12.5px; color:var(--muted); margin-top:4px}
+  .mybtn{position:absolute; right:12px; top:14px; font-size:12px; border:1px solid var(--line); background:#fff; border-radius:999px; padding:6px 11px; color:var(--ink); font-weight:600}
+
+  .steps{position:sticky; top:0; z-index:20; background:rgba(246,244,239,.95); backdrop-filter:blur(6px); border-bottom:1px solid var(--line); padding:9px 12px}
+  .people{display:flex; align-items:center; gap:8px; justify-content:center; flex-wrap:wrap}
+  .people .lab{font-size:12.5px; font-weight:700}
+  .pbtns{display:flex; gap:6px}
+  .pbtns button{width:40px; height:36px; border-radius:10px; border:1px solid var(--line); background:#fff; font-size:15px; font-weight:800; color:var(--ink)}
+  .pbtns button.on{background:var(--accent); border-color:var(--accent); color:#fff}
+  .hint{text-align:center; font-size:11.5px; color:var(--muted); margin-top:6px}
+  .legend{display:flex; gap:10px; align-items:center; font-size:11px; color:var(--muted); flex-wrap:wrap; justify-content:center; margin-top:7px}
+  .legend i{display:inline-block; width:11px; height:11px; border-radius:3px; vertical-align:-1px; margin-right:3px; border:1px solid}
+  .lg-avail i{background:var(--avail); border-color:var(--avail-br)}
+  .lg-sel i{background:var(--sel); border-color:var(--sel-br)}
+  .lg-taken i{background:var(--taken); border-color:#cfcabf}
+  .lg-wheel i{background:var(--wheel); border-color:var(--wheel-br)}
+
+  .zoombar{display:flex; justify-content:center; gap:6px; padding:8px}
+  .zoombar button{width:34px; height:34px; border-radius:10px; border:1px solid var(--line); background:#fff; font-size:17px; font-weight:700; color:var(--ink); line-height:1;}
+
+  .scroller{overflow:auto; -webkit-overflow-scrolling:touch; padding:4px 10px 180px}
+  .hall{width:max-content; margin:0 auto; transform-origin:top center; transition:transform .12s ease}
+  .stage{width:100%; min-width:420px; margin:0 auto 8px; background:var(--stage); color:#fff; text-align:center;
+         border-radius:8px; padding:9px; font-size:13px; letter-spacing:8px; font-weight:700; box-shadow:0 6px 14px rgba(0,0,0,.12);}
+  .stage-hint{text-align:center; font-size:11px; color:var(--muted); margin:0 0 14px}
+  .block{display:flex; gap:22px; align-items:flex-start; justify-content:center}
+  .block.back{margin-top:30px}
+  .section{display:flex; flex-direction:column; align-items:center}
+  .sec-head{display:flex; align-items:center; gap:7px; margin-bottom:8px}
+  .sec-badge{width:28px; height:28px; border-radius:50%; background:var(--ink); color:#fff; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:800;}
+  .sec-count{font-size:11px; color:var(--muted)}
+  .rows{display:flex; flex-direction:column; gap:4px}
+  .rows.end{align-items:flex-end} .rows.center{align-items:center} .rows.start{align-items:flex-start}
+  .seatrow{display:flex; gap:4px}
+  .seat{width:22px; height:22px; border-radius:5px; border:1px solid var(--avail-br); background:var(--avail); color:var(--avail-ink);
+        font-size:9px; font-weight:600; padding:0; cursor:pointer; line-height:1; display:flex; align-items:center; justify-content:center;}
+  .seat.wheel{background:var(--wheel); border-color:var(--wheel-br); color:var(--wheel-ink); font-size:11px}
+  .seat.sel{background:var(--sel); border-color:var(--sel-br); color:#fff}
+  .seat.taken{background:var(--taken); border-color:#cfcabf; color:var(--taken-ink); cursor:not-allowed; text-decoration:line-through}
+  .seat.gap{background:repeating-linear-gradient(45deg,#f3ece2,#f3ece2 4px,#ece3d6 4px,#ece3d6 8px); border:1px dashed #d9cbb6; color:#b09a74; cursor:default; font-size:8px}
+
+  .cart{position:fixed; left:0; right:0; bottom:0; z-index:30; background:#fff; border-top:1px solid var(--line);
+        box-shadow:0 -6px 20px rgba(0,0,0,.06); padding:12px 16px calc(12px + env(safe-area-inset-bottom));}
+  .cart .cnt{font-size:13px; color:var(--muted)} .cart .cnt b{color:var(--ink); font-size:15px}
+  .chips{display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; max-height:52px; overflow:auto}
+  .chip{background:#fff0f0; border:1px solid #f3c7c7; color:#c0392b; border-radius:999px; font-size:12px; padding:4px 9px}
+  .cart .cta{margin-top:10px; width:100%; border:0; border-radius:12px; padding:13px; background:var(--accent); color:#fff; font-size:15px; font-weight:800;}
+  .cart .cta:disabled{background:#d9d4cc; color:#fff}
+
+  .modal-bg{position:fixed; inset:0; z-index:50; background:rgba(0,0,0,.45); display:none; align-items:center; justify-content:center; padding:18px}
+  .modal-bg.on{display:flex}
+  .modal{background:#fff; border-radius:16px; width:100%; max-width:380px; padding:20px; box-shadow:0 20px 50px rgba(0,0,0,.25); max-height:88vh; overflow:auto}
+  .modal h3{margin:0 0 4px; font-size:17px}
+  .modal .sub{font-size:12.5px; color:var(--muted); margin-bottom:14px}
+  .modal label{display:block; font-size:12.5px; font-weight:700; margin:12px 0 5px}
+  .modal input, .modal select{width:100%; padding:11px; border:1px solid var(--line); border-radius:10px; font-size:15px; background:#fff}
+  .modal .mchips{display:flex; gap:6px; flex-wrap:wrap; margin-top:4px}
+  .modal .mchip{background:#f3efe7; border:1px solid var(--line); border-radius:999px; font-size:12px; padding:4px 9px}
+  .modal .btns{display:flex; gap:8px; margin-top:18px}
+  .modal .btns button{flex:1; padding:12px; border-radius:11px; font-size:15px; font-weight:800; border:0}
+  .modal .cancel{background:#eee7db; color:#6b6558}
+  .modal .ok{background:var(--accent); color:#fff}
+  .modal .ok:disabled{background:#d9d4cc}
+  .okbox{text-align:center} .okbox .big{font-size:40px; margin:6px 0}
+  .resno{font-family:ui-monospace,Menlo,monospace; background:#f3efe7; border:1px dashed #cfc7b6; border-radius:8px; padding:8px; font-size:13px; margin:8px 0; word-break:break-all}
+  .myitem{border:1px solid var(--line); border-radius:12px; padding:11px; margin-top:10px}
+  .myitem .mt{font-weight:700; font-size:14px} .myitem .ms{font-size:12px; color:var(--muted); margin-top:3px}
+  .myitem .del{margin-top:8px; width:100%; padding:8px; border-radius:9px; border:1px solid #f0c9c9; background:#fff3f3; color:#c0392b; font-weight:700; font-size:13px}
+  .toast{position:fixed; left:50%; bottom:92px; transform:translateX(-50%); background:#2b2b2b; color:#fff; padding:10px 16px; border-radius:999px; font-size:13px; z-index:60; opacity:0; transition:opacity .2s; pointer-events:none; max-width:90%; text-align:center}
+  .toast.on{opacity:1}
+
+  /* 오픈 전 잠금 화면 */
+  .gate{position:fixed; inset:0; z-index:80; background:linear-gradient(160deg,#2b2824,#4a4038); color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:28px}
+  .gate.hidden{display:none}
+  .gate .g-badge{font-size:40px}
+  .gate h1{font-size:24px; margin:10px 0 4px} .gate h1 b{color:#f0b483}
+  .gate .g-meta{font-size:13px; opacity:.8; margin-bottom:22px}
+  .gate .g-label{font-size:13px; opacity:.85}
+  .gate .count{font-size:34px; font-weight:800; letter-spacing:1px; margin:8px 0; font-variant-numeric:tabular-nums}
+  .gate .g-open{font-size:14px; opacity:.9; margin-top:4px}
+  .gate .g-note{font-size:12px; opacity:.65; margin-top:26px; max-width:300px; line-height:1.6}
+</style>
+</head>
+<body>
+<header>
+  <div class="title">뜰안애 <b>Festival</b></div>
+  <div class="meta">2026. 12. 11. (금) · 울산 북구문화예술회관</div>
+  <button class="mybtn" id="myBtn">내 예약</button>
+</header>
+
+<div class="steps">
+  <div class="people">
+    <span class="lab">① 관람 인원</span>
+    <div class="pbtns" id="pbtns">
+      <button data-n="1">1</button><button data-n="2">2</button><button data-n="3">3</button>
+      <button data-n="4">4</button><button data-n="5">5</button>
+    </div>
+  </div>
+  <div class="hint" id="hint">인원을 먼저 선택하면, 자리를 누를 때 그 인원수만큼 <b>나란히</b> 선택돼요</div>
+  <div class="legend">
+    <span class="lg-avail"><i></i>예약가능</span><span class="lg-sel"><i></i>선택</span>
+    <span class="lg-taken"><i></i>예약됨</span><span class="lg-wheel"><i></i>휠체어</span>
+  </div>
+</div>
+
+<div class="zoombar">
+  <button id="zoomOut" aria-label="축소">−</button>
+  <button id="zoomIn" aria-label="확대">+</button>
+</div>
+
+<div class="scroller" id="scroller">
+  <div class="hall" id="hall">
+    <div class="stage">무 대 · S T A G E</div>
+    <div class="stage-hint">↑ 무대 방향 (앞줄: 가·나·다 / 뒷줄: 라·마·바)</div>
+    <div class="block front" id="blockFront"></div>
+    <div class="block back" id="blockBack"></div>
+  </div>
+</div>
+
+<div class="cart">
+  <div class="cnt">선택한 좌석 <b id="selCount">0</b><span id="ofN"></span></div>
+  <div class="chips" id="chips"></div>
+  <button class="cta" id="cta" disabled>인원을 선택하세요</button>
+</div>
+
+<!-- 예약 입력 -->
+<div class="modal-bg" id="bookModal">
+  <div class="modal">
+    <h3>예약 정보 입력</h3>
+    <div class="sub">아이 이름과 반을 입력하면 예약이 확정돼요.</div>
+    <div class="mchips" id="mSeats"></div>
+    <label>아이 이름</label>
+    <input id="mName" type="text" placeholder="예: 김뜰안" autocomplete="off">
+    <label>반</label>
+    <select id="mClass">
+      <option value="">반을 선택하세요</option>
+      <option>봄맞이반</option><option>사랑초반</option><option>설유화반</option>
+      <option>곰딸기반</option><option>해란초반</option><option>갯버들반</option><option>갯완두반</option>
+    </select>
+    <div class="btns"><button class="cancel" id="mCancel">취소</button><button class="ok" id="mOk">예약 확정</button></div>
+  </div>
+</div>
+
+<!-- 완료 -->
+<div class="modal-bg" id="okModal">
+  <div class="modal okbox">
+    <div class="big">🎉</div><h3>예약 완료!</h3>
+    <div class="sub">아래 예약번호는 취소할 때 필요해요. 화면을 캡처해두세요.</div>
+    <div class="resno" id="okRes"></div>
+    <div class="btns"><button class="ok" id="okClose">확인</button></div>
+  </div>
+</div>
+
+<!-- 내 예약 -->
+<div class="modal-bg" id="myModal">
+  <div class="modal">
+    <h3>내 예약</h3><div class="sub">이 기기에서 예약한 내역이에요.</div>
+    <div id="myList"></div>
+    <div class="btns"><button class="cancel" id="myClose">닫기</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- 오픈 전 잠금 -->
+<div class="gate" id="gate">
+  <div class="g-badge">🎫</div>
+  <h1>뜰안애 <b>Festival</b> 좌석 예매</h1>
+  <div class="g-meta">2026. 12. 11. (금) · 울산 북구문화예술회관</div>
+  <div id="gateBody">
+    <div class="g-label">잠시만 기다려주세요…</div>
+  </div>
+  <div class="g-note">예매 시작 시간에 맞춰 이 화면이 자동으로 열립니다.<br>열리지 않으면 새로고침 해주세요.</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+/* ===== Supabase ===== */
+const SUPABASE_URL = "https://whsptyyzqszsqchtsejy.supabase.co";
+const SUPABASE_KEY = "sb_publishable_cI5aQY5Y_mG6DcIbAKoIkQ_NUbOpR7h";
+const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const LS_KEY = "ddeuran_bookings";
+
+/* ===== 좌석 데이터 ===== */
+const W=(n)=>"W"+n;
+const SECTIONS = {
+  "가": { align:"end", rows:[
+    [1,2,3,4,5,6,7],[15,14,13,12,11,10,9,8],[16,17,18,19,20,21,22,23],[31,30,29,28,27,26,25,24],
+    [32,33,34,35,36,37,38,39],[47,46,45,44,43,42,41,40],[48,49,50,51,52,53,54,55],[64,63,62,61,60,59,58,57,56] ]},
+  "나": { align:"center", rows:[
+    [1,2,3,4,5,6,7,8,9,10,11],[22,21,20,19,18,17,16,15,14,13,12],[23,24,25,26,27,28,29,30,31,32,33],
+    [44,43,42,41,40,39,38,37,36,35,34],[45,46,47,48,49,50,51,52,53,54,55],[66,65,64,63,62,61,60,59,58,57,56],
+    [67,68,69,70,71,72,73,74,75,76,77],[88,87,86,85,84,83,82,81,80,79,78] ]},
+  "다": { align:"start", rows:[
+    [1,2,3,4,5,6,7],[15,14,13,12,11,10,9,8],[16,17,18,19,20,21,22,23],[31,30,29,28,27,26,25,24],
+    [32,33,34,35,36,37,38,39],[47,46,45,44,43,42,41,40],[48,49,50,51,52,53,54,55],[64,63,62,61,60,59,58,57,56] ]},
+  "라": { align:"start", rows:[
+    [1,2,3,4,5,6,7,8,9,10],[20,19,18,17,16,15,14,13,12,11],[21,22,23,24,25,26,27,28,29,30],
+    [40,39,38,37,36,35,34,33,32,31],[41,42,43,44,45,46,47,48,49,50],[60,59,58,57,56,55,54,53,52,51],
+    [61,62,63,64,65,66,67,68,69,70],[W(1),W(2),W(3),W(4),W(5),W(6),W(7),W(8),W(9),W(10)] ]},
+  "마": { align:"start", rows:[
+    [1,2,3,4,5,6,7,8,9,10,11],[22,21,20,19,18,17,16,15,14,13,12],[23,24,25,26,27,28,29,30,31,32,33],
+    [44,43,42,41,40,39,38,37,36,35,34],[45,46,47,48,49,50,51,52,53,54,55],[66,65,64,63,62,61,60,59,58,57,56],
+    [67,68,69,70,71,72,73,74,75,76,77] ]},
+  "바": { align:"start", rows:[
+    [1,2,3,4,5,6,7,8,9,10],[20,19,18,17,16,15,14,13,12,11],[21,22,23,24,25,26,27,28,29,30],
+    [40,39,38,37,36,35,34,33,32,31],[41,42,43,44,45,46,47,48,49,50],[60,59,58,57,56,55,54,53,52,51],
+    [61,62,63,64,65,66,67,68,69,70],[W(1),W(2),78,77,76,75,74,73,72,71] ]},
+};
+const FRONT=["가","나","다"], BACK=["라","마","바"];
+const REMOVED=new Set(["나-5","나-6","나-7"]);
+
+let headcount=0;
+let block=[];                 // 현재 선택된 연속 좌석 id들
+const seatEls=new Map();      // id -> button
+const cellIndex=new Map();    // id -> {rowKey, idx}
+const rowCells=new Map();     // rowKey -> [{type:'seat',id}|{type:'gap'}]
+
+function isWheel(v){ return typeof v==="string" && v[0]==="W"; }
+function seatCount(sec){ return SECTIONS[sec].rows.reduce((n,row)=>n+row.filter(v=>typeof v==="number"&&!REMOVED.has(sec+'-'+v)).length,0); }
+
+function buildSection(sec){
+  const def=SECTIONS[sec];
+  const wrap=document.createElement('div'); wrap.className='section';
+  const head=document.createElement('div'); head.className='sec-head';
+  head.innerHTML=`<div class="sec-badge">${sec}</div><div class="sec-count">${seatCount(sec)}석</div>`;
+  wrap.appendChild(head);
+  const rows=document.createElement('div'); rows.className='rows '+def.align;
+  def.rows.forEach((row,ri)=>{
+    const rowKey=sec+'#'+ri; const cells=[];
+    const r=document.createElement('div'); r.className='seatrow';
+    row.forEach(v=>{
+      const b=document.createElement('button'); b.className='seat';
+      const id=sec+'-'+v;
+      if(REMOVED.has(id)){ b.classList.add('gap'); b.textContent='비움'; b.disabled=true; r.appendChild(b); cells.push({type:'gap'}); return; }
+      const label=sec+' '+(isWheel(v)?'휠체어'+v.slice(1):v);
+      if(isWheel(v)){ b.classList.add('wheel'); b.textContent='♿'; } else b.textContent=v;
+      b.dataset.id=id; b.dataset.section=sec; b.dataset.label=label;
+      b.addEventListener('click',()=>onSeatClick(id));
+      seatEls.set(id,b);
+      cellIndex.set(id,{rowKey, idx:cells.length});
+      cells.push({type:'seat', id});
+      r.appendChild(b);
+    });
+    rowCells.set(rowKey, cells);
+    rows.appendChild(r);
+  });
+  wrap.appendChild(rows);
+  return wrap;
+}
+
+function consecutive(id, n){
+  const ci=cellIndex.get(id); const cells=rowCells.get(ci.rowKey); const p=ci.idx;
+  for(let off=0; off<n; off++){
+    const s=p-off, e=s+n-1;
+    if(s<0 || e>=cells.length) continue;
+    let ok=true; const ids=[];
+    for(let i=s;i<=e;i++){ const c=cells[i]; if(c.type!=='seat'){ ok=false; break; } if(seatEls.get(c.id).classList.contains('taken')){ ok=false; break; } ids.push(c.id); }
+    if(ok) return ids;
+  }
+  return null;
+}
+function clearBlock(){ block.forEach(id=>seatEls.get(id).classList.remove('sel')); block=[]; renderCart(); }
+function setBlock(ids){ clearBlock(); block=ids; block.forEach(id=>seatEls.get(id).classList.add('sel')); renderCart(); }
+
+function onSeatClick(id){
+  const b=seatEls.get(id);
+  if(b.classList.contains('taken')||b.classList.contains('gap')) return;
+  if(headcount===0){ toast('먼저 ① 관람 인원을 선택해주세요'); return; }
+  if(block.includes(id)){ clearBlock(); return; }
+  const ids=consecutive(id, headcount);
+  if(!ids){ toast(headcount+'명이 나란히 앉을 자리가 부족해요. 다른 자리를 눌러보세요'); return; }
+  setBlock(ids);
+}
+
+function renderCart(){
+  document.getElementById('selCount').textContent=block.length;
+  document.getElementById('ofN').textContent = headcount? ' / '+headcount+'석' : '';
+  const chips=document.getElementById('chips'); chips.innerHTML='';
+  block.forEach(id=>{ const c=document.createElement('span'); c.className='chip'; c.textContent=seatEls.get(id).dataset.label; chips.appendChild(c); });
+  const cta=document.getElementById('cta');
+  if(headcount===0){ cta.disabled=true; cta.textContent='인원을 선택하세요'; }
+  else if(block.length<headcount){ cta.disabled=true; cta.textContent='자리를 선택하세요'; }
+  else { cta.disabled=false; cta.textContent=headcount+'석 예약하기'; }
+}
+function markTaken(id){
+  const b=seatEls.get(id); if(!b) return;
+  b.classList.add('taken');
+  if(block.includes(id)){ clearBlock(); toast('선택한 자리 중 일부가 방금 예약되어 해제됐어요'); }
+}
+function markAvailable(id){ const b=seatEls.get(id); if(b) b.classList.remove('taken'); }
+
+/* ===== 인원 선택 ===== */
+document.querySelectorAll('#pbtns button').forEach(btn=>{
+  btn.onclick=()=>{
+    document.querySelectorAll('#pbtns button').forEach(x=>x.classList.remove('on'));
+    btn.classList.add('on');
+    headcount=parseInt(btn.dataset.n,10);
+    clearBlock();
+    document.getElementById('hint').innerHTML=`원하는 자리를 누르면 <b>${headcount}석</b>이 나란히 선택돼요`;
+  };
+});
+
+/* ===== 렌더 ===== */
+const bf=document.getElementById('blockFront'), bb=document.getElementById('blockBack');
+FRONT.forEach(s=>bf.appendChild(buildSection(s)));
+BACK.forEach(s=>bb.appendChild(buildSection(s)));
+
+/* ===== 줌 ===== */
+const hall=document.getElementById('hall'), scroller=document.getElementById('scroller');
+let scale=1;
+function applyScale(){ hall.style.transform=`scale(${scale})`; }
+function fit(){ const avail=scroller.clientWidth-20, w=hall.scrollWidth; scale=Math.min(1,Math.max(0.45,avail/w)); applyScale(); }
+document.getElementById('zoomIn').onclick=()=>{ scale=Math.min(2.2,scale+0.15); applyScale(); };
+document.getElementById('zoomOut').onclick=()=>{ scale=Math.max(0.4,scale-0.15); applyScale(); };
+renderCart(); setTimeout(fit,60); window.addEventListener('resize',fit);
+
+/* ===== 토스트 ===== */
+let toastT;
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'),2600); }
+
+/* ===== 현황 로드 + 실시간 ===== */
+async function loadBookings(){
+  const { data, error } = await supa.from('bookings').select('seat_id');
+  if(error){ console.error(error); return; }
+  data.forEach(r=>markTaken(r.seat_id));
+}
+supa.channel('bookings-live')
+  .on('postgres_changes',{event:'INSERT',schema:'public',table:'bookings'},p=>markTaken(p.new.seat_id))
+  .on('postgres_changes',{event:'DELETE',schema:'public',table:'bookings'},p=>markAvailable(p.old.seat_id))
+  .subscribe();
+
+/* ===== 오픈 게이트 ===== */
+let openAt=null, gateTimer=null;
+function pad(n){ return String(n).padStart(2,'0'); }
+function fmtOpen(d){
+  const days=['일','월','화','수','목','금','토'];
+  const h=d.getHours(); const ap=h<12?'오전':'오후'; const h12=((h+11)%12)+1;
+  return `${d.getFullYear()}. ${d.getMonth()+1}. ${d.getDate()}. (${days[d.getDay()]}) ${ap} ${h12}:${pad(d.getMinutes())} 오픈`;
+}
+function showGateBody(){
+  const body=document.getElementById('gateBody');
+  if(!openAt){ body.innerHTML=`<div class="g-label">예매 오픈 일시는<br><b>추후 안내</b>됩니다.</div>`; return; }
+  const diff=openAt-new Date();
+  if(diff<=0){ return; }
+  const s=Math.floor(diff/1000), d=Math.floor(s/86400), h=Math.floor(s%86400/3600), m=Math.floor(s%3600/60), sec=s%60;
+  const cd = d>0 ? `${d}일 ${pad(h)}:${pad(m)}:${pad(sec)}` : `${pad(h)}:${pad(m)}:${pad(sec)}`;
+  body.innerHTML=`<div class="g-label">예매 오픈까지</div><div class="count">${cd}</div><div class="g-open">${fmtOpen(openAt)}</div>`;
+}
+function tickGate(){
+  const gate=document.getElementById('gate');
+  if(openAt && new Date()>=openAt){ gate.classList.add('hidden'); clearInterval(gateTimer); gateTimer=null; return; }
+  showGateBody();
+}
+async function loadConfig(){
+  let ok=false;
+  try{
+    const { data } = await supa.from('app_config').select('open_at').eq('id',1).maybeSingle();
+    if(data){ openAt = data.open_at ? new Date(data.open_at) : null; ok=true; }
+  }catch(e){ console.error(e); }
+  const gate=document.getElementById('gate');
+  if(ok && openAt && new Date()>=openAt){ gate.classList.remove('hidden'); gate.classList.add('hidden'); }
+  else { gate.classList.remove('hidden'); }
+  if(!gateTimer) gateTimer=setInterval(tickGate,1000);
+  tickGate();
+}
+loadBookings();
+loadConfig();
+setInterval(loadConfig, 60000); // 오픈 시간 변경 반영
+
+/* ===== 예약 플로우 ===== */
+const bookModal=document.getElementById('bookModal'), okModal=document.getElementById('okModal'), myModal=document.getElementById('myModal');
+function openModal(m){ m.classList.add('on'); } function closeModal(m){ m.classList.remove('on'); }
+document.getElementById('cta').onclick=()=>{
+  if(block.length===0 || block.length<headcount) return;
+  const ms=document.getElementById('mSeats'); ms.innerHTML='';
+  block.forEach(id=>{ const c=document.createElement('span'); c.className='mchip'; c.textContent=seatEls.get(id).dataset.label; ms.appendChild(c); });
+  document.getElementById('mName').value=''; document.getElementById('mClass').value='';
+  openModal(bookModal);
+};
+document.getElementById('mCancel').onclick=()=>closeModal(bookModal);
+document.getElementById('mOk').onclick=async()=>{
+  const name=document.getElementById('mName').value.trim();
+  const cls=document.getElementById('mClass').value;
+  if(!name){ toast('아이 이름을 입력해주세요'); return; }
+  if(!cls){ toast('반을 선택해주세요'); return; }
+  const seats=block.map(id=>({ id, section:seatEls.get(id).dataset.section, label:seatEls.get(id).dataset.label }));
+  const btn=document.getElementById('mOk'); btn.disabled=true; btn.textContent='예약 중…';
+  try{
+    const { data, error } = await supa.rpc('book_seats',{ p_seats:seats, p_name:name, p_class:cls });
+    if(error) throw error;
+    if(!data.ok){
+      toast(data.message||'예약에 실패했어요');
+      if(data.conflict){ data.conflict.forEach(id=>markTaken(id)); }
+      if(data.closed){ closeModal(bookModal); loadConfig(); }
+    }else{
+      const mine=loadMine(); mine.push({ group_id:data.group_id, name, cls, seats:seats.map(s=>s.label), at:Date.now() }); saveMine(mine);
+      seats.forEach(s=>markTaken(s.id));
+      clearBlock(); closeModal(bookModal);
+      document.getElementById('okRes').textContent='예약번호: '+data.group_id;
+      openModal(okModal);
+    }
+  }catch(e){ console.error(e); toast('오류가 발생했어요. 다시 시도해주세요'); }
+  finally{ btn.disabled=false; btn.textContent='예약 확정'; }
+};
+document.getElementById('okClose').onclick=()=>closeModal(okModal);
+
+/* ===== 내 예약/취소 ===== */
+function loadMine(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }catch(e){ return []; } }
+function saveMine(a){ try{ localStorage.setItem(LS_KEY,JSON.stringify(a)); }catch(e){} }
+document.getElementById('myBtn').onclick=()=>{ renderMine(); openModal(myModal); };
+document.getElementById('myClose').onclick=()=>closeModal(myModal);
+function renderMine(){
+  const list=document.getElementById('myList'); const mine=loadMine(); list.innerHTML='';
+  if(mine.length===0){ list.innerHTML='<div class="sub">아직 예약 내역이 없어요.</div>'; return; }
+  mine.slice().reverse().forEach(m=>{
+    const d=document.createElement('div'); d.className='myitem';
+    d.innerHTML=`<div class="mt">${m.name} · ${m.cls}</div><div class="ms">좌석: ${m.seats.join(', ')}</div>`;
+    const del=document.createElement('button'); del.className='del'; del.textContent='이 예약 취소하기';
+    del.onclick=async()=>{
+      if(!confirm(m.name+' 예약을 취소할까요?')) return;
+      del.disabled=true; del.textContent='취소 중…';
+      try{
+        const { data, error } = await supa.rpc('cancel_booking',{ p_group:m.group_id });
+        if(error) throw error;
+        const arr=loadMine().filter(x=>x.group_id!==m.group_id); saveMine(arr);
+        toast('예약이 취소됐어요'); renderMine();
+      }catch(e){ console.error(e); toast('취소에 실패했어요'); del.disabled=false; del.textContent='이 예약 취소하기'; }
+    };
+    d.appendChild(del); list.appendChild(d);
+  });
+}
+[bookModal,okModal,myModal].forEach(m=>m.addEventListener('click',e=>{ if(e.target===m) closeModal(m); }));
+</script>
+</body>
+</html>
