@@ -3,51 +3,60 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>뜰안애 Festival · 예약 관리자</title>
+<title>제5회 뜰안애 Festival · 예약 관리자</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700;900&display=swap" rel="stylesheet">
 <style>
-  :root{ --bg:#f6f4ef; --card:#fff; --ink:#2b2b2b; --muted:#8a8a8a; --line:#e7e3da; --accent:#c9733b; }
+  :root{
+    --cream:#fbf4e2; --cream2:#fff9ee; --ink:#49351f; --muted:#9c8a6c; --line:#e6d6b0;
+    --gold:#c6a052; --gold-d:#a67f35; --gold-l:#ecd38f; --velvet:#9a2f2c; --velvet-d:#6e1f1f;
+  }
   *{box-sizing:border-box} html,body{margin:0;padding:0}
-  body{font-family:-apple-system,BlinkMacSystemFont,"Malgun Gothic",'Apple SD Gothic Neo',sans-serif; background:var(--bg); color:var(--ink);}
-  header{text-align:center; padding:16px; background:linear-gradient(180deg,#fff,#fbf9f4); border-bottom:1px solid var(--line);}
-  header .t{font-size:18px; font-weight:800} header .t b{color:var(--accent)}
-  header .s{font-size:12px; color:var(--muted); margin-top:3px}
-  .wrap{max-width:860px; margin:0 auto; padding:16px;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Malgun Gothic",'Apple SD Gothic Neo',sans-serif; color:var(--ink);
+    background:#241510; background-image:radial-gradient(85% 45% at 50% -4%, rgba(255,214,140,.2), rgba(255,214,140,0) 60%), linear-gradient(180deg,#3c251c,#1b100c 70%); background-attachment:fixed; min-height:100vh;}
+  .valance{height:24px; background:linear-gradient(180deg,#a8322f,#7a2222); position:relative}
+  .valance::before{content:""; position:absolute; left:0; right:0; top:22px; height:2px; background:linear-gradient(90deg,#a67f35,#ecd38f,#a67f35)}
+  .valance::after{content:""; position:absolute; left:0; right:0; top:24px; height:13px; background:radial-gradient(circle at 11px -3px,#7a2222 11px,transparent 12px) repeat-x; background-size:22px 13px}
+  header{text-align:center; padding:20px 16px 12px}
+  header .t{font-family:"Noto Serif KR",serif; font-weight:900; font-size:21px;
+    background:linear-gradient(180deg,#f8e7ac,#dcb75a 55%,#a9801f); -webkit-background-clip:text; background-clip:text; color:transparent}
+  header .s{font-size:12px; color:#e0cfa8; opacity:.8; margin-top:3px}
+  .wrap{max-width:880px; margin:0 auto; padding:16px}
 
-  /* 로그인 */
-  .login{max-width:340px; margin:60px auto; background:#fff; border:1px solid var(--line); border-radius:16px; padding:24px; text-align:center}
-  .login h2{margin:0 0 6px; font-size:17px} .login p{font-size:12.5px; color:var(--muted); margin:0 0 16px}
+  .login{max-width:340px; margin:40px auto; background:var(--cream2); border:1.5px solid var(--gold); border-radius:16px; padding:24px; text-align:center; box-shadow:0 14px 36px rgba(0,0,0,.35)}
+  .login h2{margin:0 0 6px; font-size:17px; color:var(--velvet); font-family:"Noto Serif KR",serif} .login p{font-size:12.5px; color:var(--muted); margin:0 0 16px}
   .login input{width:100%; padding:12px; border:1px solid var(--line); border-radius:10px; font-size:16px; text-align:center; letter-spacing:2px}
-  .login button{margin-top:12px; width:100%; padding:12px; border:0; border-radius:11px; background:var(--accent); color:#fff; font-size:15px; font-weight:800}
+  .login button{margin-top:12px; width:100%; padding:12px; border:1px solid var(--gold-d); border-radius:11px; background:linear-gradient(180deg,var(--velvet),var(--velvet-d)); color:#fff; font-size:15px; font-weight:800}
   .err{color:#c0392b; font-size:12.5px; margin-top:10px; min-height:16px}
 
-  /* 대시보드 */
   .bar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; margin-bottom:14px}
   .stats{display:flex; gap:8px; flex-wrap:wrap}
-  .stat{background:#fff; border:1px solid var(--line); border-radius:12px; padding:8px 14px; font-size:13px}
-  .stat b{font-size:18px; color:var(--accent); display:block}
+  .stat{background:var(--cream); border:1px solid var(--gold); border-radius:12px; padding:8px 14px; font-size:13px}
+  .stat b{font-size:18px; color:var(--velvet); display:block}
   .tools{display:flex; gap:6px; flex-wrap:wrap}
-  .tools button{border:1px solid var(--line); background:#fff; border-radius:9px; padding:8px 12px; font-size:13px; font-weight:600; color:var(--ink)}
-  .tools button.on{background:var(--ink); color:#fff; border-color:var(--ink)}
-  .tbl{background:#fff; border:1px solid var(--line); border-radius:14px; overflow:hidden}
+  .tools button{border:1px solid var(--gold); background:var(--cream); border-radius:9px; padding:8px 12px; font-size:13px; font-weight:600; color:var(--ink)}
+  .tools button.on{background:linear-gradient(180deg,var(--velvet),var(--velvet-d)); color:#fff; border-color:var(--velvet-d)}
+  .tbl{background:var(--cream2); border:1.5px solid var(--gold); border-radius:14px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,.3)}
   table{width:100%; border-collapse:collapse; font-size:13.5px}
-  th,td{padding:11px 12px; text-align:left; border-bottom:1px solid #f0ece3}
-  th{background:#faf7f1; font-size:12px; color:var(--muted); font-weight:700}
+  th,td{padding:11px 12px; text-align:left; border-bottom:1px solid #efe4cb}
+  th{background:#f3ead4; font-size:12px; color:#7a6b4e; font-weight:700}
   tr:last-child td{border-bottom:0}
-  .seats{color:#c0392b; font-weight:600}
-  .delbtn{border:1px solid #f0c9c9; background:#fff3f3; color:#c0392b; border-radius:8px; padding:5px 10px; font-size:12px; font-weight:700}
+  .seats{color:var(--velvet); font-weight:700}
+  .delbtn{border:1px solid #e0b9ac; background:#f7e9e3; color:var(--velvet); border-radius:8px; padding:5px 10px; font-size:12px; font-weight:700}
   .empty{text-align:center; color:var(--muted); padding:40px 16px; font-size:14px}
-  .cls-head{background:#f3efe7; font-weight:800; font-size:13px}
-  @media print{ .bar,.tools,header .s,.delbtn{display:none} .tbl{border:0} }
+  .cls-head{background:#f0e4c6; font-weight:800; font-size:13px; color:var(--ink)}
+  @media print{ body{background:#fff} .valance,.bar,.tools,header .s,.delbtn{display:none} .tbl{border:0; box-shadow:none} header .t{color:#000 !important; -webkit-text-fill-color:#000} }
 </style>
 </head>
 <body>
+<div class="valance"></div>
 <header>
-  <div class="t">뜰안애 <b>Festival</b> · 예약 관리자</div>
-  <div class="s">2026. 12. 11. (금) · 울산 북구문화예술회관</div>
+  <div class="t">제5회 뜰안애 FESTIVAL · 예약 관리자</div>
+  <div class="s">2026. 12. 11. (금) 오후 6시 · 북구문화예술회관</div>
 </header>
 
 <div class="wrap">
-  <!-- 로그인 -->
   <div class="login" id="login">
     <h2>🔒 관리자 확인</h2>
     <p>관리자 비밀번호를 입력하세요.</p>
@@ -56,7 +65,6 @@
     <div class="err" id="err"></div>
   </div>
 
-  <!-- 대시보드 -->
   <div id="dash" style="display:none">
     <div class="bar">
       <div class="stats">
@@ -85,7 +93,6 @@ const CLASS_ORDER = ["봄맞이반","사랑초반","설유화반","곰딸기반"
 let rows=[], pw="", sortMode="class";
 
 function fmtSeat(id){
-  // "나-37" -> "나 37", "라-W3" -> "라 휠체어3"
   const m=id.match(/^(.+)-(W?)(\d+)$/);
   if(!m) return id;
   return m[1]+' '+(m[2]?'휠체어':'')+m[3];
@@ -168,7 +175,6 @@ document.getElementById('print').onclick=()=>window.print();
 document.getElementById('sortClass').onclick=()=>{ sortMode='class'; document.getElementById('sortClass').classList.add('on'); document.getElementById('sortTime').classList.remove('on'); render(); };
 document.getElementById('sortTime').onclick=()=>{ sortMode='time'; document.getElementById('sortTime').classList.add('on'); document.getElementById('sortClass').classList.remove('on'); render(); };
 
-// 세션에 비번 있으면 자동 로그인 시도
 (function(){ try{ const saved=sessionStorage.getItem(PW_KEY); if(saved){ document.getElementById('pw').value=saved; login(); } }catch(e){} })();
 </script>
 </body>

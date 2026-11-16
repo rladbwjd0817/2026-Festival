@@ -391,10 +391,11 @@ const hall=document.getElementById('hall'), scroller=document.getElementById('sc
 let seatPx=22;
 function applyZoom(){ hall.style.setProperty('--seat', seatPx+'px'); }
 function fit(){
-  hall.style.setProperty('--seat','22px');
-  const avail=scroller.clientWidth-20, natural=hall.scrollWidth;
-  seatPx=Math.max(9, Math.min(22, Math.floor(22*avail/natural)));
-  applyZoom();
+  const avail=scroller.clientWidth-20;
+  seatPx=22; applyZoom();
+  // 화면 폭에 들어올 때까지 좌석을 줄임 → 전체가 보이고 가운데 정렬됨
+  let guard=0;
+  while(hall.getBoundingClientRect().width>avail && seatPx>6 && guard<40){ seatPx--; applyZoom(); guard++; }
 }
 document.getElementById('zoomIn').onclick=()=>{ seatPx=Math.min(46, seatPx+4); applyZoom(); };
 document.getElementById('zoomOut').onclick=()=>{ seatPx=Math.max(8, seatPx-4); applyZoom(); };
