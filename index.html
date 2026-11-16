@@ -396,8 +396,8 @@ function fit(){
   seatPx=22; applyZoom();
   // 화면 폭에 맞게 좌석을 줄이되, 누르기 좋은 최소 크기(10px)는 유지
   let guard=0;
-  while(hall.getBoundingClientRect().width>avail && seatPx>10 && guard<40){ seatPx--; applyZoom(); guard++; }
-  centerScroll();   // 넘칠 때 가운데에서 시작 → 좌우 치우침 없음
+  while(hall.getBoundingClientRect().width>avail && seatPx>7 && guard<40){ seatPx--; applyZoom(); guard++; }
+  centerScroll();   // 혹시 넘치면 가운데에서 시작 → 좌우 치우침 없음
 }
 document.getElementById('zoomIn').onclick=()=>{ seatPx=Math.min(46, seatPx+4); applyZoom(); };
 document.getElementById('zoomOut').onclick=()=>{ seatPx=Math.max(8, seatPx-4); applyZoom(); };
