@@ -390,12 +390,14 @@ const hall=document.getElementById('hall'), scroller=document.getElementById('sc
 // 확대/축소: 좌석 크기(--seat)를 바꿔 실제 레이아웃이 늘어나게 → 하단 문구 겹침 없음
 let seatPx=22;
 function applyZoom(){ hall.style.setProperty('--seat', seatPx+'px'); }
+function centerScroll(){ requestAnimationFrame(()=>{ try{ scroller.scrollLeft=Math.max(0,(scroller.scrollWidth-scroller.clientWidth)/2); }catch(e){} }); }
 function fit(){
   const avail=scroller.clientWidth-20;
   seatPx=22; applyZoom();
-  // 화면 폭에 들어올 때까지 좌석을 줄임 → 전체가 보이고 가운데 정렬됨
+  // 화면 폭에 맞게 좌석을 줄이되, 누르기 좋은 최소 크기(10px)는 유지
   let guard=0;
-  while(hall.getBoundingClientRect().width>avail && seatPx>6 && guard<40){ seatPx--; applyZoom(); guard++; }
+  while(hall.getBoundingClientRect().width>avail && seatPx>10 && guard<40){ seatPx--; applyZoom(); guard++; }
+  centerScroll();   // 넘칠 때 가운데에서 시작 → 좌우 치우침 없음
 }
 document.getElementById('zoomIn').onclick=()=>{ seatPx=Math.min(46, seatPx+4); applyZoom(); };
 document.getElementById('zoomOut').onclick=()=>{ seatPx=Math.max(8, seatPx-4); applyZoom(); };
