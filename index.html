@@ -167,11 +167,13 @@
 </div>
 
 <div class="scroller" id="scroller">
+  <div id="hallWrap">
   <div class="hall" id="hall">
     <div class="stage">무 대 · S T A G E</div>
     <div class="stage-hint">↑ 무대 방향 (앞줄: 가·나·다 / 뒷줄: 라·마·바)</div>
     <div class="block front" id="blockFront"></div>
     <div class="block back" id="blockBack"></div>
+  </div>
   </div>
   <div class="foot">🎭 국공립 뜰안애어린이집</div>
 </div>
@@ -366,12 +368,11 @@ FRONT.forEach(s=>bf.appendChild(buildSection(s)));
 BACK.forEach(s=>bb.appendChild(buildSection(s)));
 
 /* ===== 줌 ===== */
-const hall=document.getElementById('hall'), scroller=document.getElementById('scroller');
+const hall=document.getElementById('hall'), scroller=document.getElementById('scroller'), hallWrap=document.getElementById('hallWrap');
 let scale=1;
 function applyScale(){
-  const h=hall.offsetHeight;               // 확대 전 실제 높이
   hall.style.transform=`scale(${scale})`;
-  hall.style.marginBottom=(h*(scale-1))+'px';  // 확대/축소한 만큼 아래 여백 보정 → 하단 문구가 안 겹침
+  hallWrap.style.height=(hall.offsetHeight*scale)+'px';  // 확대/축소한 실제 높이만큼 공간 확보 → 하단 문구 안 겹침
 }
 function fit(){ const avail=scroller.clientWidth-20, w=hall.scrollWidth; scale=Math.min(1,Math.max(0.45,avail/w)); applyScale(); }
 document.getElementById('zoomIn').onclick=()=>{ scale=Math.min(2.2,scale+0.15); applyScale(); };
