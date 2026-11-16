@@ -368,7 +368,11 @@ BACK.forEach(s=>bb.appendChild(buildSection(s)));
 /* ===== 줌 ===== */
 const hall=document.getElementById('hall'), scroller=document.getElementById('scroller');
 let scale=1;
-function applyScale(){ hall.style.transform=`scale(${scale})`; }
+function applyScale(){
+  const h=hall.offsetHeight;               // 확대 전 실제 높이
+  hall.style.transform=`scale(${scale})`;
+  hall.style.marginBottom=(h*(scale-1))+'px';  // 확대/축소한 만큼 아래 여백 보정 → 하단 문구가 안 겹침
+}
 function fit(){ const avail=scroller.clientWidth-20, w=hall.scrollWidth; scale=Math.min(1,Math.max(0.45,avail/w)); applyScale(); }
 document.getElementById('zoomIn').onclick=()=>{ scale=Math.min(2.2,scale+0.15); applyScale(); };
 document.getElementById('zoomOut').onclick=()=>{ scale=Math.max(0.4,scale-0.15); applyScale(); };
