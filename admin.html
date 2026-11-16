@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>뜰안애 Festival · 예약 관리자</title>
+<style>
+  :root{ --bg:#f6f4ef; --card:#fff; --ink:#2b2b2b; --muted:#8a8a8a; --line:#e7e3da; --accent:#c9733b; }
+  *{box-sizing:border-box} html,body{margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Malgun Gothic",'Apple SD Gothic Neo',sans-serif; background:var(--bg); color:var(--ink);}
+  header{text-align:center; padding:16px; background:linear-gradient(180deg,#fff,#fbf9f4); border-bottom:1px solid var(--line);}
+  header .t{font-size:18px; font-weight:800} header .t b{color:var(--accent)}
+  header .s{font-size:12px; color:var(--muted); margin-top:3px}
+  .wrap{max-width:860px; margin:0 auto; padding:16px;}
+
+  /* 로그인 */
+  .login{max-width:340px; margin:60px auto; background:#fff; border:1px solid var(--line); border-radius:16px; padding:24px; text-align:center}
+  .login h2{margin:0 0 6px; font-size:17px} .login p{font-size:12.5px; color:var(--muted); margin:0 0 16px}
+  .login input{width:100%; padding:12px; border:1px solid var(--line); border-radius:10px; font-size:16px; text-align:center; letter-spacing:2px}
+  .login button{margin-top:12px; width:100%; padding:12px; border:0; border-radius:11px; background:var(--accent); color:#fff; font-size:15px; font-weight:800}
+  .err{color:#c0392b; font-size:12.5px; margin-top:10px; min-height:16px}
+
+  /* 대시보드 */
+  .bar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; margin-bottom:14px}
+  .stats{display:flex; gap:8px; flex-wrap:wrap}
+  .stat{background:#fff; border:1px solid var(--line); border-radius:12px; padding:8px 14px; font-size:13px}
+  .stat b{font-size:18px; color:var(--accent); display:block}
+  .tools{display:flex; gap:6px; flex-wrap:wrap}
+  .tools button{border:1px solid var(--line); background:#fff; border-radius:9px; padding:8px 12px; font-size:13px; font-weight:600; color:var(--ink)}
+  .tools button.on{background:var(--ink); color:#fff; border-color:var(--ink)}
+  .tbl{background:#fff; border:1px solid var(--line); border-radius:14px; overflow:hidden}
+  table{width:100%; border-collapse:collapse; font-size:13.5px}
+  th,td{padding:11px 12px; text-align:left; border-bottom:1px solid #f0ece3}
+  th{background:#faf7f1; font-size:12px; color:var(--muted); font-weight:700}
+  tr:last-child td{border-bottom:0}
+  .seats{color:#c0392b; font-weight:600}
+  .delbtn{border:1px solid #f0c9c9; background:#fff3f3; color:#c0392b; border-radius:8px; padding:5px 10px; font-size:12px; font-weight:700}
+  .empty{text-align:center; color:var(--muted); padding:40px 16px; font-size:14px}
+  .cls-head{background:#f3efe7; font-weight:800; font-size:13px}
+  @media print{ .bar,.tools,header .s,.delbtn{display:none} .tbl{border:0} }
+</style>
+</head>
+<body>
+<header>
+  <div class="t">뜰안애 <b>Festival</b> · 예약 관리자</div>
+  <div class="s">2026. 12. 11. (금) · 울산 북구문화예술회관</div>
+</header>
+
+<div class="wrap">
+  <!-- 로그인 -->
+  <div class="login" id="login">
+    <h2>🔒 관리자 확인</h2>
+    <p>관리자 비밀번호를 입력하세요.</p>
+    <input id="pw" type="password" placeholder="비밀번호" autocomplete="off">
+    <button id="loginBtn">확인</button>
+    <div class="err" id="err"></div>
+  </div>
+
+  <!-- 대시보드 -->
+  <div id="dash" style="display:none">
+    <div class="bar">
+      <div class="stats">
+        <div class="stat">예약 가정<b id="stFam">0</b></div>
+        <div class="stat">예약 좌석<b id="stSeat">0</b></div>
+      </div>
+      <div class="tools">
+        <button id="sortClass" class="on">반별</button>
+        <button id="sortTime">시간순</button>
+        <button id="refresh">새로고침</button>
+        <button id="print">인쇄</button>
+      </div>
+    </div>
+    <div class="tbl" id="tblWrap"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = "https://whsptyyzqszsqchtsejy.supabase.co";
+const SUPABASE_KEY = "sb_publishable_cI5aQY5Y_mG6DcIbAKoIkQ_NUbOpR7h";
+const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const PW_KEY = "ddeuran_admin_pw";
+const CLASS_ORDER = ["봄맞이반","사랑초반","설유화반","곰딸기반","해란초반","갯버들반","갯완두반"];
+
+let rows=[], pw="", sortMode="class";
+
+function fmtSeat(id){
+  // "나-37" -> "나 37", "라-W3" -> "라 휠체어3"
+  const m=id.match(/^(.+)-(W?)(\d+)$/);
+  if(!m) return id;
+  return m[1]+' '+(m[2]?'휠체어':'')+m[3];
+}
+function fmtTime(s){ const d=new Date(s); const p=n=>String(n).padStart(2,'0');
+  return `${d.getMonth()+1}/${d.getDate()} ${p(d.getHours())}:${p(d.getMinutes())}`; }
+
+async function login(){
+  const err=document.getElementById('err'); err.textContent='';
+  const val=document.getElementById('pw').value.trim();
+  if(!val){ err.textContent='비밀번호를 입력하세요.'; return; }
+  const btn=document.getElementById('loginBtn'); btn.disabled=true; btn.textContent='확인 중…';
+  try{
+    const { data, error } = await supa.rpc('admin_bookings',{ p_pw: val });
+    if(error) throw error;
+    if(!data.ok){ err.textContent=data.message||'비밀번호가 틀렸어요.'; return; }
+    pw=val; try{ sessionStorage.setItem(PW_KEY, val); }catch(e){}
+    rows=data.rows||[];
+    document.getElementById('login').style.display='none';
+    document.getElementById('dash').style.display='block';
+    render();
+  }catch(e){ console.error(e); err.textContent='오류가 발생했어요. 다시 시도해주세요.'; }
+  finally{ btn.disabled=false; btn.textContent='확인'; }
+}
+async function reload(){
+  try{
+    const { data, error } = await supa.rpc('admin_bookings',{ p_pw: pw });
+    if(error) throw error;
+    if(data.ok){ rows=data.rows||[]; render(); }
+  }catch(e){ console.error(e); }
+}
+async function cancelOne(group, name){
+  if(!confirm(name+' 예약을 취소할까요? (좌석이 다시 풀려요)')) return;
+  try{
+    const { data, error } = await supa.rpc('cancel_booking',{ p_group: group });
+    if(error) throw error;
+    rows=rows.filter(r=>r.group_id!==group); render();
+  }catch(e){ console.error(e); alert('취소에 실패했어요.'); }
+}
+
+function render(){
+  const famCount=rows.length;
+  const seatCount=rows.reduce((n,r)=>n+(r.seats?r.seats.length:0),0);
+  document.getElementById('stFam').textContent=famCount;
+  document.getElementById('stSeat').textContent=seatCount;
+
+  const wrap=document.getElementById('tblWrap');
+  if(famCount===0){ wrap.innerHTML='<div class="empty">아직 예약이 없어요.</div>'; return; }
+
+  let html='<table><thead><tr><th>반</th><th>아이 이름</th><th>좌석</th><th>예약시각</th><th></th></tr></thead><tbody>';
+  const rowHtml=(r)=>`<tr>
+    <td>${r.class||''}</td><td><b>${r.name||''}</b></td>
+    <td class="seats">${(r.seats||[]).map(fmtSeat).join(', ')}</td>
+    <td>${fmtTime(r.at)}</td>
+    <td><button class="delbtn" data-g="${r.group_id}" data-n="${(r.name||'').replace(/"/g,'')}">취소</button></td></tr>`;
+
+  if(sortMode==='class'){
+    const groups={};
+    rows.forEach(r=>{ (groups[r.class]=groups[r.class]||[]).push(r); });
+    const order=[...CLASS_ORDER, ...Object.keys(groups).filter(c=>!CLASS_ORDER.includes(c))];
+    order.forEach(c=>{
+      if(!groups[c]) return;
+      const sub=groups[c].slice().sort((a,b)=>(a.name||'').localeCompare(b.name||'','ko'));
+      const sc=sub.reduce((n,r)=>n+(r.seats?r.seats.length:0),0);
+      html+=`<tr class="cls-head"><td colspan="5">${c} · ${sub.length}가정 ${sc}석</td></tr>`;
+      sub.forEach(r=>html+=rowHtml(r));
+    });
+  }else{
+    rows.slice().sort((a,b)=>new Date(a.at)-new Date(b.at)).forEach(r=>html+=rowHtml(r));
+  }
+  html+='</tbody></table>';
+  wrap.innerHTML=html;
+  wrap.querySelectorAll('.delbtn').forEach(b=>b.onclick=()=>cancelOne(b.dataset.g, b.dataset.n));
+}
+
+document.getElementById('loginBtn').onclick=login;
+document.getElementById('pw').addEventListener('keydown',e=>{ if(e.key==='Enter') login(); });
+document.getElementById('refresh').onclick=reload;
+document.getElementById('print').onclick=()=>window.print();
+document.getElementById('sortClass').onclick=()=>{ sortMode='class'; document.getElementById('sortClass').classList.add('on'); document.getElementById('sortTime').classList.remove('on'); render(); };
+document.getElementById('sortTime').onclick=()=>{ sortMode='time'; document.getElementById('sortTime').classList.add('on'); document.getElementById('sortClass').classList.remove('on'); render(); };
+
+// 세션에 비번 있으면 자동 로그인 시도
+(function(){ try{ const saved=sessionStorage.getItem(PW_KEY); if(saved){ document.getElementById('pw').value=saved; login(); } }catch(e){} })();
+</script>
+</body>
+</html>
