@@ -546,11 +546,29 @@ document.getElementById('okClose').onclick=()=>closeModal(okModal);
 /* ===== 내 예약/취소 ===== */
 function loadMine(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }catch(e){ return []; } }
 function saveMine(a){ try{ localStorage.setItem(LS_KEY,JSON.stringify(a)); }catch(e){} }
-document.getElementById('myBtn').onclick=()=>{ renderMine(); openModal(myModal); };
+document.getElementById('myBtn').onclick=()=>{ openModal(myModal); renderMine(); };
 document.getElementById('myClose').onclick=()=>closeModal(myModal);
-function renderMine(){
-  const list=document.getElementById('myList'); const mine=loadMine(); list.innerHTML='';
-  if(mine.length===0){ list.innerHTML='<div class="sub">아직 예약 내역이 없어요.</div>'; return; }
+// 저장된 내역을 서버와 대조해, 관리자가 취소한(=서버에 없는) 예약은 자동으로 제거
+async function pruneCancelled(){
+  let mine=loadMine();
+  const ids=[...new Set(mine.map(m=>m.group_id).filter(Boolean))];
+  if(ids.length===0) return mine;
+  try{
+    const { data, error } = await supa.from('bookings').select('group_id').in('group_id', ids);
+    if(error || !data) return mine; // 조회 실패 시엔 거르지 않음(안전)
+    const alive=new Set(data.map(r=>r.group_id));
+    const kept=mine.filter(m=>!m.group_id || alive.has(m.group_id));
+    if(kept.length!==mine.length) saveMine(kept);
+    return kept;
+  }catch(e){ return mine; }
+}
+async function renderMine(){
+  const list=document.getElementById('myList');
+  if(loadMine().length===0){ list.innerHTML='<div class="sub">아직 예약 내역이 없어요.</div>'; return; }
+  list.innerHTML='<div class="sub">예약 내역을 확인하는 중…</div>';
+  const mine=await pruneCancelled();
+  list.innerHTML='';
+  if(mine.length===0){ list.innerHTML='<div class="sub">현재 유효한 예약 내역이 없어요. (취소되었을 수 있어요)</div>'; return; }
   mine.slice().reverse().forEach(m=>{
     const d=document.createElement('div'); d.className='myitem';
     d.innerHTML=`<div class="mt">${m.name} · ${m.cls}</div><div class="ms">좌석: ${m.seats.join(', ')}</div>`;
