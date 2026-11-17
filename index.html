@@ -438,16 +438,24 @@ renderCart(); setTimeout(fit,60); window.addEventListener('resize',fit);
 let toastT;
 function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'),2600); }
 
-/* ===== 현황 로드 + 실시간 ===== */
-async function loadBookings(){
+/* ===== 현황 로드 + 실시간 + 안전망 ===== */
+// 좌석 현황을 DB와 '통째로' 맞춤 (예약된 자리=taken, 풀린 자리=해제). 실시간을 놓쳐도 자가치유.
+async function syncBookings(){
   const { data, error } = await supa.from('bookings').select('seat_id');
   if(error){ console.error(error); return; }
-  data.forEach(r=>markTaken(r.seat_id));
+  const taken=new Set(data.map(r=>r.seat_id));
+  seatEls.forEach((el,id)=>{
+    if(taken.has(id)){ if(!el.classList.contains('taken')) markTaken(id); }
+    else if(el.classList.contains('taken')){ el.classList.remove('taken'); }
+  });
 }
+async function loadBookings(){ return syncBookings(); }
 supa.channel('bookings-live')
   .on('postgres_changes',{event:'INSERT',schema:'public',table:'bookings'},p=>markTaken(p.new.seat_id))
   .on('postgres_changes',{event:'DELETE',schema:'public',table:'bookings'},p=>markAvailable(p.old.seat_id))
   .subscribe();
+// 실시간이 끊기거나 놓쳐도 15초마다 좌석 상태를 다시 맞추는 안전망
+setInterval(syncBookings, 15000);
 
 /* ===== 오픈 게이트 ===== */
 let openAt=null, gateTimer=null;
