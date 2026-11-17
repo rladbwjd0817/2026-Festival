@@ -63,6 +63,7 @@
   .lg-wheel i{background:var(--wheel); border-color:var(--wheel-br)}
 
   .zoombar{display:flex; justify-content:center; gap:6px; padding:10px 8px 2px}
+  .scroll-hint{display:none; text-align:center; font-size:12px; font-weight:700; color:var(--gold-deep,#9a7b2e); background:#fbf3dc; border:1px solid #ecdcae; border-radius:999px; padding:5px 12px; width:max-content; max-width:92%; margin:4px auto 0}
   .zoombar button{width:34px; height:34px; border-radius:10px; border:1px solid var(--gold); background:var(--cream); font-size:17px; font-weight:700; color:var(--ink); line-height:1}
 
   .scroller{overflow:auto; -webkit-overflow-scrolling:touch; padding:10px 10px 180px}
@@ -174,6 +175,7 @@
   <button id="zoomOut" aria-label="축소">−</button>
   <button id="zoomIn" aria-label="확대">+</button>
 </div>
+<div class="scroll-hint" id="scrollHint">⟷ 좌우로 밀어서 양쪽 구역도 보세요</div>
 
 <div class="scroller" id="scroller">
   <div id="hallWrap">
@@ -430,16 +432,24 @@ const hall=document.getElementById('hall'), scroller=document.getElementById('sc
 let seatPx=22;
 function applyZoom(){ hall.style.setProperty('--seat', seatPx+'px'); }
 function centerScroll(){ requestAnimationFrame(()=>{ try{ scroller.scrollLeft=Math.max(0,(scroller.scrollWidth-scroller.clientWidth)/2); }catch(e){} }); }
+function updateScrollHint(){
+  const el=document.getElementById('scrollHint'); if(!el) return;
+  el.style.display = (scroller.scrollWidth > scroller.clientWidth+4) ? 'block' : 'none';
+}
 function fit(){
   const avail=scroller.clientWidth-20;
+  // 휴대폰(좁은 화면)에선 18px 이하로 줄이지 않아 가독성 유지 → 대신 좌우로 스크롤
+  const minSeat = window.innerWidth < 600 ? 18 : 7;
   seatPx=22; applyZoom();
-  // 화면 폭에 맞게 좌석을 줄이되, 누르기 좋은 최소 크기(10px)는 유지
   let guard=0;
-  while(hall.getBoundingClientRect().width>avail && seatPx>7 && guard<40){ seatPx--; applyZoom(); guard++; }
-  centerScroll();   // 혹시 넘치면 가운데에서 시작 → 좌우 치우침 없음
+  while(hall.getBoundingClientRect().width>avail && seatPx>minSeat && guard<60){ seatPx--; applyZoom(); guard++; }
+  centerScroll();   // 넘치면 가운데에서 시작 → 좌우 치우침 없음
+  updateScrollHint();
 }
-document.getElementById('zoomIn').onclick=()=>{ seatPx=Math.min(46, seatPx+4); applyZoom(); };
-document.getElementById('zoomOut').onclick=()=>{ seatPx=Math.max(8, seatPx-4); applyZoom(); };
+document.getElementById('zoomIn').onclick=()=>{ seatPx=Math.min(46, seatPx+4); applyZoom(); updateScrollHint(); };
+document.getElementById('zoomOut').onclick=()=>{ seatPx=Math.max(10, seatPx-4); applyZoom(); updateScrollHint(); };
+// 한 번 스크롤하면 안내 숨김
+scroller.addEventListener('scroll',()=>{ const el=document.getElementById('scrollHint'); if(el) el.style.display='none'; }, {passive:true, once:true});
 renderCart(); setTimeout(fit,60); window.addEventListener('resize',fit);
 
 /* ===== 토스트 ===== */
