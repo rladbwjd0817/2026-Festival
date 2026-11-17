@@ -57,6 +57,8 @@
   th{background:#f3ead4; font-size:12px; color:#7a6b4e; font-weight:700}
   tr:last-child td{border-bottom:0}
   .seats{color:var(--velvet); font-weight:700}
+  .cnt{white-space:nowrap; color:var(--muted); font-size:13px}
+  .cnt b{color:var(--velvet); font-size:15px}
   .delbtn{border:1px solid #e0b9ac; background:#f7e9e3; color:var(--velvet); border-radius:8px; padding:5px 10px; font-size:12px; font-weight:700}
   .empty{text-align:center; color:var(--muted); padding:40px 16px; font-size:14px}
   .cls-head{background:#f0e4c6; font-weight:800; font-size:13px; color:var(--ink)}
@@ -190,18 +192,19 @@ function render(){
 
   const rowHtml=(r)=>`<tr>
     <td>${r.class||''}</td><td><b>${r.name||''}</b></td>
+    <td class="cnt"><b>${seatsOf(r).length}</b>석</td>
     <td class="seats">${seatsOf(r).map(fmtSeat).join(', ')}</td>
     <td>${fmtTime(r.at)}</td>
     <td><button class="delbtn" data-g="${r.group_id}" data-n="${(r.name||'').replace(/"/g,'')}">취소</button></td></tr>`;
 
-  let html='<table><thead><tr><th>반</th><th>아이 이름</th><th>좌석</th><th>예약시각</th><th></th></tr></thead><tbody>';
+  let html='<table><thead><tr><th>반</th><th>아이 이름</th><th>좌석수</th><th>좌석</th><th>예약시각</th><th></th></tr></thead><tbody>';
   if(sortMode==='class' && !classFilter){
     const order=[...CLASSES, ...Object.keys(byClass).filter(c=>!CLASSES.includes(c))];
     order.forEach(c=>{
       const sub=list.filter(r=>r.class===c).sort((a,b)=>(a.name||'').localeCompare(b.name||'','ko'));
       if(sub.length===0) return;
       const sc=sub.reduce((n,r)=>n+seatsOf(r).length,0);
-      html+=`<tr class="cls-head"><td colspan="5">${c} · ${sub.length}가정 ${sc}석</td></tr>`;
+      html+=`<tr class="cls-head"><td colspan="6">${c} · ${sub.length}가정 ${sc}석</td></tr>`;
       sub.forEach(r=>html+=rowHtml(r));
     });
   }else if(sortMode==='time'){
