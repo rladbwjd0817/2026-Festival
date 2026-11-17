@@ -431,10 +431,18 @@ const hall=document.getElementById('hall'), scroller=document.getElementById('sc
 // 확대/축소: 좌석 크기(--seat)를 바꿔 실제 레이아웃이 늘어나게 → 하단 문구 겹침 없음
 let seatPx=22;
 function applyZoom(){ hall.style.setProperty('--seat', seatPx+'px'); }
-function centerScroll(){ requestAnimationFrame(()=>{ try{ scroller.scrollLeft=Math.max(0,(scroller.scrollWidth-scroller.clientWidth)/2); }catch(e){} }); }
+function centerScroll(){
+  const go=()=>{ try{ scroller.scrollLeft=Math.max(0,(scroller.scrollWidth-scroller.clientWidth)/2); }catch(e){} };
+  requestAnimationFrame(()=>{ go(); requestAnimationFrame(go); });
+  setTimeout(go,130);
+}
+let scrollHintT;
 function updateScrollHint(){
   const el=document.getElementById('scrollHint'); if(!el) return;
-  el.style.display = (scroller.scrollWidth > scroller.clientWidth+4) ? 'block' : 'none';
+  const scrollable = scroller.scrollWidth > scroller.clientWidth+4;
+  el.style.display = scrollable ? 'block' : 'none';
+  clearTimeout(scrollHintT);
+  if(scrollable){ scrollHintT=setTimeout(()=>{ el.style.display='none'; }, 5000); } // 5초 후 자동 숨김
 }
 function fit(){
   const avail=scroller.clientWidth-20;
@@ -448,9 +456,7 @@ function fit(){
 }
 document.getElementById('zoomIn').onclick=()=>{ seatPx=Math.min(46, seatPx+4); applyZoom(); updateScrollHint(); };
 document.getElementById('zoomOut').onclick=()=>{ seatPx=Math.max(10, seatPx-4); applyZoom(); updateScrollHint(); };
-// 한 번 스크롤하면 안내 숨김
-scroller.addEventListener('scroll',()=>{ const el=document.getElementById('scrollHint'); if(el) el.style.display='none'; }, {passive:true, once:true});
-renderCart(); setTimeout(fit,60); window.addEventListener('resize',fit);
+renderCart(); setTimeout(fit,60); window.addEventListener('load',fit); window.addEventListener('resize',fit);
 
 /* ===== 토스트 ===== */
 let toastT;
