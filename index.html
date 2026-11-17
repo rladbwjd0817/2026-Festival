@@ -218,7 +218,7 @@
 <div class="modal-bg" id="okModal">
   <div class="modal okbox">
     <div class="big">🎉</div><h3>예약 완료!</h3>
-    <div class="sub">아래 예약번호는 취소할 때 필요해요. 화면을 캡처해두세요.</div>
+    <div class="sub">예약 취소·변경은 오른쪽 위 <b>‘내 예약’</b> 버튼에서 바로 하실 수 있어요.<br>(예약하신 이 기기에서요. 다른 기기에선 선생님께 문의해주세요.)</div>
     <div class="resno" id="okRes"></div>
     <div class="btns"><button class="ok" id="okClose">확인</button></div>
   </div>
@@ -552,7 +552,7 @@ document.getElementById('mOk').onclick=async()=>{
       const mine=loadMine(); mine.push({ group_id:data.group_id, name, cls, seats:seats.map(s=>s.label), at:Date.now() }); saveMine(mine);
       seats.forEach(s=>markTaken(s.id));
       clearBlock(); closeModal(bookModal);
-      document.getElementById('okRes').textContent='예약번호: '+data.group_id;
+      document.getElementById('okRes').textContent='예약번호(참고용): '+String(data.group_id).slice(0,8);
       openModal(okModal);
     }
   }catch(e){ console.error(e); myPending=new Set(); toast('오류가 발생했어요. 다시 시도해주세요'); }
