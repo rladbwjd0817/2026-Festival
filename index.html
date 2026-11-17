@@ -358,9 +358,10 @@ function grabAround(id, max){
   while(L-1>=0 && avail(L-1)) L--;
   while(R+1<cells.length && avail(R+1)) R++;
   if(R-L+1<=max){ const ids=[]; for(let i=L;i<=R;i++) ids.push(cells[i].id); return ids; }
-  let s=p, e=p+max-1;
-  if(e>R){ e=R; s=e-max+1; }
-  if(s<L){ s=L; e=s+max-1; }
+  // 누른 자리를 '오른쪽' 기준으로, 짝은 왼쪽에 붙임 (예: 4번 누르면 3·4번)
+  let e=p, s=p-max+1;
+  if(s<L){ s=L; e=s+max-1; }   // 왼쪽 벽에 닿으면 오른쪽으로 보정
+  if(e>R){ e=R; s=e-max+1; }   // 오른쪽 벽 보정
   const ids=[]; for(let i=s;i<=e;i++) ids.push(cells[i].id); return ids;
 }
 
