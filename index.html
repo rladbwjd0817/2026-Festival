@@ -86,11 +86,11 @@
   .rows.end{align-items:flex-end} .rows.center{align-items:center} .rows.start{align-items:flex-start}
   .seatrow{display:flex; gap:calc(var(--seat)*0.18)}
   .seat{width:var(--seat); height:var(--seat); border-radius:calc(var(--seat)*0.23); border:1px solid var(--avail-br); background:var(--avail); color:var(--avail-ink);
-        font-size:calc(var(--seat)*0.41); font-weight:700; padding:0; cursor:pointer; line-height:1; display:flex; align-items:center; justify-content:center}
+        font-size:calc(var(--seat)*0.41); font-weight:700; padding:0; cursor:pointer; line-height:1; overflow:hidden; display:flex; align-items:center; justify-content:center}
   .seat.wheel{background:var(--wheel); border-color:var(--wheel-br); color:var(--wheel-ink); font-size:calc(var(--seat)*0.5)}
   .seat.sel{background:linear-gradient(180deg,var(--sel),var(--sel-br)); border-color:var(--sel-br); color:#fff}
   .seat.taken{background:var(--taken); border-color:#cfc3a6; color:var(--taken-ink); cursor:not-allowed; text-decoration:line-through}
-  .seat.gap{background:repeating-linear-gradient(45deg,#efe6d1,#efe6d1 4px,#e6d9bd 4px,#e6d9bd 8px); border:1px dashed #cdb98c; color:#a98f5e; cursor:default; font-size:8px}
+  .seat.gap{background:repeating-linear-gradient(45deg,#efe6d1,#efe6d1 4px,#e6d9bd 4px,#e6d9bd 8px); border:1px dashed #cdb98c; color:#a98f5e; cursor:default; font-size:calc(var(--seat)*0.3)}
 
   .foot{text-align:center; color:var(--gold-l); font-weight:700; font-size:13px; margin:22px 0 4px; opacity:.9; font-family:"Noto Serif KR",serif}
 
@@ -232,7 +232,7 @@
         <option>봄맞이반</option><option>사랑초반</option><option>설유화반</option>
         <option>곰딸기반</option><option>해란초반</option><option>갯버들반</option><option>갯완두반</option>
       </select>
-      <button class="ok" id="lkBtn" style="margin-top:10px;width:100%">예약 조회</button>
+      <button class="ok" id="lkBtn" style="margin-top:12px;width:100%;padding:15px;font-size:15px;font-weight:800;border-radius:12px">🔎 예약 조회</button>
       <div id="lkResult"></div>
     </div>
     <div class="btns"><button class="cancel" id="myClose">닫기</button></div>
