@@ -367,7 +367,16 @@ function renderCart(){
 function markTaken(id){
   const b=seatEls.get(id); if(!b) return;
   b.classList.add('taken');
-  if(block.includes(id)){ clearBlock(); toast('선택한 자리 중 일부가 방금 예약되어 해제됐어요'); }
+  if(block.includes(id)){
+    clearBlock();
+    const bm=document.getElementById('bookModal');
+    if(bm && bm.classList.contains('on')){
+      bm.classList.remove('on');
+      toast('앗, 방금 다른 분이 이 자리를 예약했어요. 다른 자리를 골라주세요 🙏');
+    } else {
+      toast('선택한 자리 중 일부가 방금 예약되어 해제됐어요');
+    }
+  }
 }
 function markAvailable(id){ const b=seatEls.get(id); if(b) b.classList.remove('taken'); }
 
@@ -470,6 +479,7 @@ document.getElementById('cta').onclick=()=>{
 };
 document.getElementById('mCancel').onclick=()=>closeModal(bookModal);
 document.getElementById('mOk').onclick=async()=>{
+  if(block.length===0){ closeModal(bookModal); toast('앗, 방금 다른 분이 이 자리를 예약했어요. 다른 자리를 골라주세요 🙏'); return; }
   const name=document.getElementById('mName').value.trim();
   const cls=document.getElementById('mClass').value;
   if(!name){ toast('아이 이름을 입력해주세요'); return; }
