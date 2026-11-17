@@ -344,14 +344,33 @@ function consecutive(id, n){
 function clearBlock(){ block.forEach(id=>seatEls.get(id).classList.remove('sel')); block=[]; renderCart(); }
 function setBlock(ids){ clearBlock(); block=ids; block.forEach(id=>seatEls.get(id).classList.add('sel')); renderCart(); }
 
+/* 탭한 자리를 포함한 '비어있는 연속 구간'을, 남은 인원 수(max)만큼 모아요 */
+function grabAround(id, max){
+  const ci=cellIndex.get(id); const cells=rowCells.get(ci.rowKey); const p=ci.idx;
+  const avail=i=>{ const c=cells[i]; if(!c||c.type!=='seat') return false; const el=seatEls.get(c.id); return !el.classList.contains('taken') && !block.includes(c.id); };
+  if(!avail(p)) return [];
+  let L=p, R=p;
+  while(L-1>=0 && avail(L-1)) L--;
+  while(R+1<cells.length && avail(R+1)) R++;
+  if(R-L+1<=max){ const ids=[]; for(let i=L;i<=R;i++) ids.push(cells[i].id); return ids; }
+  let s=p, e=p+max-1;
+  if(e>R){ e=R; s=e-max+1; }
+  if(s<L){ s=L; e=s+max-1; }
+  const ids=[]; for(let i=s;i<=e;i++) ids.push(cells[i].id); return ids;
+}
+
 function onSeatClick(id){
   const b=seatEls.get(id);
   if(b.classList.contains('taken')||b.classList.contains('gap')) return;
   if(headcount===0){ toast('먼저 ① 관람 인원을 선택해주세요'); return; }
-  if(block.includes(id)){ clearBlock(); return; }
-  const ids=consecutive(id, headcount);
-  if(!ids){ toast(headcount+'명이 나란히 앉을 자리가 부족해요. 다른 자리를 눌러보세요'); return; }
-  setBlock(ids);
+  // 이미 고른 자리면 그 한 자리만 해제
+  if(block.includes(id)){ b.classList.remove('sel'); block=block.filter(x=>x!==id); renderCart(); return; }
+  const remaining=headcount-block.length;
+  if(remaining<=0){ toast(headcount+'석을 이미 다 골랐어요. 바꾸려면 고른 자리를 눌러 해제하세요'); return; }
+  const ids=grabAround(id, remaining);
+  if(ids.length===0){ toast('다른 자리를 눌러주세요'); return; }
+  ids.forEach(sid=>{ seatEls.get(sid).classList.add('sel'); block.push(sid); });
+  renderCart();
 }
 
 function renderCart(){
@@ -361,7 +380,8 @@ function renderCart(){
   block.forEach(id=>{ const c=document.createElement('span'); c.className='chip'; c.textContent=seatEls.get(id).dataset.label; chips.appendChild(c); });
   const cta=document.getElementById('cta');
   if(headcount===0){ cta.disabled=true; cta.textContent='인원을 선택하세요'; }
-  else if(block.length<headcount){ cta.disabled=true; cta.textContent='자리를 선택하세요'; }
+  else if(block.length===0){ cta.disabled=true; cta.textContent='자리를 선택하세요'; }
+  else if(block.length<headcount){ cta.disabled=true; cta.textContent='앞으로 '+(headcount-block.length)+'석 더 선택'; }
   else { cta.disabled=false; cta.textContent=headcount+'석 예약하기'; }
 }
 function markTaken(id){
@@ -387,7 +407,7 @@ document.querySelectorAll('#pbtns button').forEach(btn=>{
     btn.classList.add('on');
     headcount=parseInt(btn.dataset.n,10);
     clearBlock();
-    document.getElementById('hint').innerHTML=`원하는 자리를 누르면 <b>${headcount}석</b>이 나란히 선택돼요`;
+    document.getElementById('hint').innerHTML=`원하는 자리를 누르면 <b>${headcount}석</b>이 나란히 선택돼요. 나란히 안 되면 <b>나눠서</b> 골라도 괜찮아요`;
   };
 });
 
