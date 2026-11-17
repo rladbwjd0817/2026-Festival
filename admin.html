@@ -59,10 +59,15 @@
   .seats{color:var(--velvet); font-weight:700}
   .cnt{white-space:nowrap; color:var(--muted); font-size:13px}
   .cnt b{color:var(--velvet); font-size:15px}
+  .pk{text-align:center; width:40px}
+  .pk input{width:18px; height:18px; accent-color:var(--velvet); cursor:pointer}
+  .bulkdel{border:1px solid #d98a8a; background:#fdeeee; color:#b23b3b; font-weight:700}
+  .bulkdel:not(:disabled){background:#f6dede}
+  .bulkdel:disabled{opacity:.45; cursor:default}
   .delbtn{border:1px solid #e0b9ac; background:#f7e9e3; color:var(--velvet); border-radius:8px; padding:5px 10px; font-size:12px; font-weight:700}
   .empty{text-align:center; color:var(--muted); padding:40px 16px; font-size:14px}
   .cls-head{background:#f0e4c6; font-weight:800; font-size:13px; color:var(--ink)}
-  @media print{ body{background:#fff} .valance,.bar,.tools,.ctrls,header .s,.delbtn{display:none} .tbl{border:0; box-shadow:none} header .t{color:#000 !important; -webkit-text-fill-color:#000} .cscard{border-color:#999} }
+  @media print{ body{background:#fff} .valance,.bar,.tools,.ctrls,header .s,.delbtn,.pk{display:none} .tbl{border:0; box-shadow:none} header .t{color:#000 !important; -webkit-text-fill-color:#000} .cscard{border-color:#999} }
 </style>
 </head>
 <body>
@@ -102,6 +107,7 @@
         </select>
       </div>
       <div class="tools">
+        <button id="bulkDel" class="bulkdel" disabled>🗑️ 선택 삭제 (0)</button>
         <button id="refresh">🔄 새로고침</button>
         <button id="excel" class="excel">⬇️ 엑셀 다운로드</button>
         <button id="print">🖨️ 인쇄</button>
@@ -191,20 +197,21 @@ function render(){
   if(list.length===0){ wrap.innerHTML='<div class="empty">예약 내역이 없어요.</div>'; return; }
 
   const rowHtml=(r)=>`<tr>
+    <td class="pk"><input type="checkbox" class="pick" data-g="${r.group_id}"></td>
     <td>${r.class||''}</td><td><b>${r.name||''}</b></td>
     <td class="cnt"><b>${seatsOf(r).length}</b>석</td>
     <td class="seats">${seatsOf(r).map(fmtSeat).join(', ')}</td>
     <td>${fmtTime(r.at)}</td>
     <td><button class="delbtn" data-g="${r.group_id}" data-n="${(r.name||'').replace(/"/g,'')}">취소</button></td></tr>`;
 
-  let html='<table><thead><tr><th>반</th><th>아이 이름</th><th>좌석수</th><th>좌석</th><th>예약시각</th><th></th></tr></thead><tbody>';
+  let html='<table><thead><tr><th class="pk"><input type="checkbox" id="checkAll" title="전체 선택"></th><th>반</th><th>아이 이름</th><th>좌석수</th><th>좌석</th><th>예약시각</th><th></th></tr></thead><tbody>';
   if(sortMode==='class' && !classFilter){
     const order=[...CLASSES, ...Object.keys(byClass).filter(c=>!CLASSES.includes(c))];
     order.forEach(c=>{
       const sub=list.filter(r=>r.class===c).sort((a,b)=>(a.name||'').localeCompare(b.name||'','ko'));
       if(sub.length===0) return;
       const sc=sub.reduce((n,r)=>n+seatsOf(r).length,0);
-      html+=`<tr class="cls-head"><td colspan="6">${c} · ${sub.length}가정 ${sc}석</td></tr>`;
+      html+=`<tr class="cls-head"><td colspan="7">${c} · ${sub.length}가정 ${sc}석</td></tr>`;
       sub.forEach(r=>html+=rowHtml(r));
     });
   }else if(sortMode==='time'){
@@ -215,6 +222,31 @@ function render(){
   html+='</tbody></table>';
   wrap.innerHTML=html;
   wrap.querySelectorAll('.delbtn').forEach(b=>b.onclick=()=>cancelOne(b.dataset.g, b.dataset.n));
+  wrap.querySelectorAll('.pick').forEach(c=>c.onchange=updatePick);
+  const all=document.getElementById('checkAll');
+  if(all) all.onchange=()=>{ wrap.querySelectorAll('.pick').forEach(c=>c.checked=all.checked); updatePick(); };
+  updatePick();
+}
+
+function updatePick(){
+  const picks=[...document.querySelectorAll('#tblWrap .pick')];
+  const checked=picks.filter(c=>c.checked);
+  const btn=document.getElementById('bulkDel');
+  if(btn){ btn.disabled=checked.length===0; btn.textContent='🗑️ 선택 삭제 ('+checked.length+')'; }
+  const all=document.getElementById('checkAll');
+  if(all){ all.checked=picks.length>0 && checked.length===picks.length; all.indeterminate=checked.length>0 && checked.length<picks.length; }
+}
+async function cancelMany(){
+  const groups=[...document.querySelectorAll('#tblWrap .pick:checked')].map(c=>c.dataset.g);
+  if(groups.length===0) return;
+  if(!confirm(groups.length+'건의 예약을 삭제할까요?\n선택한 좌석이 다시 풀려요. (되돌릴 수 없어요)')) return;
+  const btn=document.getElementById('bulkDel'); btn.disabled=true; btn.textContent='삭제 중…';
+  const results=await Promise.allSettled(groups.map(g=>supa.rpc('cancel_booking',{ p_group:g })));
+  const okGroups=[]; let fail=0;
+  results.forEach((res,i)=>{ if(res.status==='fulfilled' && !res.value.error) okGroups.push(groups[i]); else fail++; });
+  rows=rows.filter(r=>!okGroups.includes(r.group_id));
+  render();
+  if(fail) alert(fail+'건은 삭제에 실패했어요. 새로고침 후 다시 시도해주세요.');
 }
 
 /* ===== 엑셀(CSV) 다운로드 ===== */
@@ -239,6 +271,7 @@ function downloadCSV(){
 
 document.getElementById('loginBtn').onclick=login;
 document.getElementById('pw').addEventListener('keydown',e=>{ if(e.key==='Enter') login(); });
+document.getElementById('bulkDel').onclick=cancelMany;
 document.getElementById('refresh').onclick=reload;
 document.getElementById('print').onclick=()=>window.print();
 document.getElementById('excel').onclick=downloadCSV;
