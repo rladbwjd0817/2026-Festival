@@ -295,6 +295,7 @@ const REMOVED=new Set(["나-5","나-6","나-7"]);
 
 let headcount=0;
 let block=[];                 // 현재 선택된 연속 좌석 id들
+let myPending=new Set();       // 내가 지금 확정 중/방금 예약한 좌석 (내 예약을 '남이 가져감'으로 오인 방지)
 const seatEls=new Map();      // id -> button
 const cellIndex=new Map();    // id -> {rowKey, idx}
 const rowCells=new Map();     // rowKey -> [{type:'seat',id}|{type:'gap'}]
@@ -389,6 +390,11 @@ function renderCart(){
 function markTaken(id){
   const b=seatEls.get(id); if(!b) return;
   b.classList.add('taken');
+  if(myPending.has(id)){
+    // 내가 방금 예약한/확정 중인 자리 → 조용히 taken 처리 (그 자리만 선택 해제)
+    if(block.includes(id)){ b.classList.remove('sel'); block=block.filter(x=>x!==id); renderCart(); }
+    return;
+  }
   if(block.includes(id)){
     clearBlock();
     const bm=document.getElementById('bookModal');
@@ -515,13 +521,15 @@ document.getElementById('mOk').onclick=async()=>{
   if(!name){ toast('아이 이름을 입력해주세요'); return; }
   if(!cls){ toast('반을 선택해주세요'); return; }
   const seats=block.map(id=>({ id, section:seatEls.get(id).dataset.section, label:seatEls.get(id).dataset.label }));
+  myPending=new Set(seats.map(s=>s.id)); // ★ 내 좌석 표시: 실시간 에코/성공 처리를 '남이 가져감'으로 오인 안 하게
   const btn=document.getElementById('mOk'); btn.disabled=true; btn.textContent='예약 중…';
   try{
     const { data, error } = await supa.rpc('book_seats',{ p_seats:seats, p_name:name, p_class:cls });
     if(error) throw error;
     if(!data.ok){
+      myPending=new Set(); // 실패 시 해제 (다음부터 정상 알림)
       toast(data.message||'예약에 실패했어요');
-      if(data.conflict){ data.conflict.forEach(id=>markTaken(id)); }
+      if(data.conflict){ clearBlock(); data.conflict.forEach(id=>markTaken(id)); }
       if(data.closed){ closeModal(bookModal); loadConfig(); }
     }else{
       const mine=loadMine(); mine.push({ group_id:data.group_id, name, cls, seats:seats.map(s=>s.label), at:Date.now() }); saveMine(mine);
@@ -530,7 +538,7 @@ document.getElementById('mOk').onclick=async()=>{
       document.getElementById('okRes').textContent='예약번호: '+data.group_id;
       openModal(okModal);
     }
-  }catch(e){ console.error(e); toast('오류가 발생했어요. 다시 시도해주세요'); }
+  }catch(e){ console.error(e); myPending=new Set(); toast('오류가 발생했어요. 다시 시도해주세요'); }
   finally{ btn.disabled=false; btn.textContent='예약 확정'; }
 };
 document.getElementById('okClose').onclick=()=>closeModal(okModal);
