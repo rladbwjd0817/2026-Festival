@@ -67,6 +67,15 @@
   .delbtn{border:1px solid #e0b9ac; background:#f7e9e3; color:var(--velvet); border-radius:8px; padding:5px 10px; font-size:12px; font-weight:700}
   .empty{text-align:center; color:var(--muted); padding:40px 16px; font-size:14px}
   .cls-head{background:#f0e4c6; font-weight:800; font-size:13px; color:var(--ink)}
+
+  .unbooked{display:flex; flex-direction:column; gap:7px}
+  .ubrow{background:var(--cream); border:1px solid var(--gold); border-radius:12px; padding:9px 13px; font-size:13px}
+  .ubrow .uc{font-weight:800; color:var(--ink); font-size:14px}
+  .ubrow .uct{font-size:11.5px; color:var(--muted); margin-left:7px}
+  .ubrow .names{margin-top:4px; color:var(--velvet); font-weight:700; line-height:1.65}
+  .ubrow.done{opacity:.72}
+  .ubrow.done .names{color:#2f7a43}
+  .ubhint{color:var(--muted); font-size:12.5px; padding:6px 2px}
   @media print{ body{background:#fff} .valance,.bar,.tools,.ctrls,header .s,.delbtn,.pk{display:none} .tbl{border:0; box-shadow:none} header .t{color:#000 !important; -webkit-text-fill-color:#000} .cscard{border-color:#999} }
 </style>
 </head>
@@ -97,6 +106,9 @@
     <div class="section-title">🏷️ 반별 현황 <span style="font-weight:400;opacity:.7">(클릭하면 해당 반만 보기)</span></div>
     <div class="classstats" id="classStats"></div>
 
+    <div class="section-title">🔔 아직 예약 안 한 아이 <span style="font-weight:400;opacity:.7">(명단 대조 · 독촉용)</span></div>
+    <div class="unbooked" id="unbookedPanel"><div class="ubhint">명단을 불러오는 중…</div></div>
+
     <div class="bar">
       <div class="ctrls">
         <select id="classFilter"></select>
@@ -126,7 +138,7 @@ const PW_KEY = "ddeuran_admin_pw";
 const CLASSES = ["봄맞이반","사랑초반","설유화반","곰딸기반","해란초반","갯버들반","갯완두반"];
 const TOTAL_SEATS = 450; // 일반 438 + 휠체어 12
 
-let rows=[], pw="", sortMode="class", classFilter="";
+let rows=[], pw="", sortMode="class", classFilter="", classStatus=[];
 
 function fmtSeat(id){ const m=id.match(/^(.+)-(W?)(\d+)$/); return m ? m[1]+' '+(m[2]?'휠체어':'')+m[3] : id; }
 function fmtTime(s){ const d=new Date(s); const p=n=>String(n).padStart(2,'0'); return `${d.getMonth()+1}/${d.getDate()} ${p(d.getHours())}:${p(d.getMinutes())}`; }
@@ -145,13 +157,40 @@ async function login(){
     rows=data.rows||[];
     document.getElementById('login').style.display='none';
     document.getElementById('dash').style.display='block';
-    buildFilter(); render();
+    buildFilter(); render(); fetchClassStatus();
   }catch(e){ console.error(e); err.textContent='오류가 발생했어요. 다시 시도해주세요.'; }
   finally{ btn.disabled=false; btn.textContent='확인'; }
 }
 async function reload(){
   try{ const { data, error } = await supa.rpc('admin_bookings',{ p_pw: pw });
     if(error) throw error; if(data.ok){ rows=data.rows||[]; render(); } }catch(e){ console.error(e); }
+  fetchClassStatus();
+}
+
+function statusOf(c){ return classStatus.find(s=>s.class===c); }
+async function fetchClassStatus(){
+  const el=document.getElementById('unbookedPanel');
+  try{
+    const { data, error } = await supa.rpc('admin_class_status',{ p_pw: pw });
+    if(error) throw error;
+    if(data && data.ok){ classStatus=data.classes||[]; render(); renderUnbooked(); }
+    else if(el){ el.innerHTML='<div class="ubhint">명단 현황을 불러오지 못했어요.</div>'; }
+  }catch(e){ console.error(e); if(el) el.innerHTML='<div class="ubhint">명단 현황을 불러오지 못했어요. (반별 현황 SQL을 먼저 실행했는지 확인해주세요)</div>'; }
+}
+function renderUnbooked(){
+  const el=document.getElementById('unbookedPanel'); if(!el) return;
+  if(!classStatus.length){ el.innerHTML='<div class="ubhint">명단이 비어있어요.</div>'; return; }
+  const order=[...CLASSES, ...classStatus.map(s=>s.class).filter(c=>!CLASSES.includes(c))];
+  let html='';
+  order.forEach(c=>{
+    const s=statusOf(c); if(!s) return;
+    const un=s.unbooked||[]; const done=un.length===0;
+    html+=`<div class="ubrow${done?' done':''}">`
+      +`<span class="uc">${c}</span><span class="uct">예약 ${s.booked}/${s.enrolled}명</span>`
+      +`<div class="names">${done?'✅ 전원 예약 완료':('아직 '+un.length+'명 · '+un.join(', '))}</div>`
+      +`</div>`;
+  });
+  el.innerHTML=html||'<div class="ubhint">명단이 비어있어요.</div>';
 }
 async function cancelOne(group, name){
   if(!confirm(name+' 예약을 취소할까요? (좌석이 다시 풀려요)')) return;
@@ -186,7 +225,8 @@ function render(){
   csWrap.appendChild(allCard);
   Object.keys(byClass).forEach(c=>{
     const d=document.createElement('div'); d.className='cscard'+(classFilter===c?' on':'');
-    d.innerHTML=`<div class="cn">${c}</div><b>${byClass[c].fam}</b><div class="sub">가정 · ${byClass[c].seat}석</div>`;
+    const st=statusOf(c); const denom=st?`<span style="font-size:11px;opacity:.6">/${st.enrolled}</span>`:'';
+    d.innerHTML=`<div class="cn">${c}</div><b>${byClass[c].fam}${denom}</b><div class="sub">가정 · ${byClass[c].seat}석</div>`;
     d.onclick=()=>{ classFilter=c; document.getElementById('classFilter').value=c; render(); };
     csWrap.appendChild(d);
   });
